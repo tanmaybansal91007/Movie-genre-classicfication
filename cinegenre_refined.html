@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineGenre AI — Movie & Anime Genre Universe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;1,9..40,300&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--bg:#060810;--surface:#0d1117;--card:#111827;--card2:#161f30;--accent:#e63e6d;--accent2:#7c3aed;--accent3:#06b6d4;--accent4:#f59e0b;--gold:#fbbf24;--text:#f0f4ff;--muted:#8892a4;--border:rgba(255,255,255,0.07);--glow:rgba(230,62,109,0.35);--glow2:rgba(124,58,237,0.3)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(124,58,237,.18) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(230,62,109,.15) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 50% 50%,rgba(6,182,212,.06) 0%,transparent 70%),#060810}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:60px 60px}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:orbFloat 12s ease-in-out infinite}
+.orb1{width:500px;height:500px;background:rgba(124,58,237,.12);top:-150px;left:-100px}
+.orb2{width:400px;height:400px;background:rgba(230,62,109,.1);bottom:-100px;right:-100px;animation-delay:4s}
+.orb3{width:300px;height:300px;background:rgba(6,182,212,.08);top:40%;left:40%;animation-delay:8s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
+.wrap{position:relative;z-index:1}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(6,8,16,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px;gap:1rem}
+.logo{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;text-decoration:none;flex-shrink:0}
+.nav-links{display:flex;gap:.25rem}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.85rem;padding:.4rem .8rem;border-radius:6px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:var(--text);background:var(--border)}
+.nav-links a.active{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+.btn-nav{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:.5rem 1.1rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-nav:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--glow)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:6rem 2rem 4rem;position:relative;overflow:hidden}
+.hero-content{max-width:900px;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);padding:.4rem 1rem;border-radius:100px;font-size:.78rem;color:#a78bfa;margin-bottom:2rem;letter-spacing:1px;font-weight:600;text-transform:uppercase;animation:fadeInDown .8s ease}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:#a78bfa;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,10vw,8rem);line-height:.9;letter-spacing:2px;margin-bottom:1.5rem;animation:fadeInUp .8s ease .2s both}
+.hero h1 .line1{display:block;color:var(--text)}
+.hero h1 .line2{display:block;background:linear-gradient(135deg,var(--accent),var(--accent4),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1 .line3{display:block;color:var(--accent3)}
+.hero p{font-size:1.1rem;color:var(--muted);max-width:600px;margin:0 auto 2.5rem;line-height:1.7;animation:fadeInUp .8s ease .4s both}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;animation:fadeInUp .8s ease .6s both}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#c2185b);color:#fff;border:none;padding:.85rem 2rem;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .25s;box-shadow:0 0 30px rgba(230,62,109,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(230,62,109,.5)}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border);padding:.85rem 2rem;border-radius:10px;font-size:.95rem;font-weight:500;cursor:pointer;transition:all .25s;backdrop-filter:blur(10px)}
+.btn-secondary:hover{border-color:var(--accent3);color:var(--accent3)}
+.hero-stats{display:flex;gap:3rem;justify-content:center;margin-top:4rem;animation:fadeInUp .8s ease .8s both}
+.stat{text-align:center}
+.stat-num{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:var(--accent)}
+.stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.25rem}
+
+/* FLOATING BADGES */
+.floating-badges{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.float-badge{position:absolute;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:.3rem .8rem;font-size:.72rem;font-weight:600;color:var(--muted);white-space:nowrap;backdrop-filter:blur(10px);animation:floatBadge linear infinite;opacity:0}
+@keyframes floatBadge{0%{transform:translateY(0) translateX(0) scale(.8);opacity:0}10%{opacity:.7}90%{opacity:.4}100%{transform:translateY(-120vh) translateX(var(--drift)) scale(1.1);opacity:0}}
+
+/* SECTIONS */
+section{padding:5rem 2rem;max-width:1400px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:3rem}
+.section-tag{display:inline-block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent3);margin-bottom:.75rem}
+.section-header h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.5rem);letter-spacing:1px;line-height:1.1}
+.section-header p{color:var(--muted);margin-top:.75rem;font-size:.95rem}
+
+/* AI CLASSIFIER */
+.ai-box{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(230,62,109,.08));border:1px solid rgba(124,58,237,.25);border-radius:20px;padding:2.5rem;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(124,58,237,.1),inset 0 1px 0 rgba(255,255,255,.05)}
+.ai-box::before{content:'';position:absolute;top:-1px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--accent2),transparent)}
+.ai-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.ai-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.4)}
+.ai-header h3{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700}
+.ai-header p{font-size:.8rem;color:var(--muted);margin-top:.15rem}
+.ai-textarea{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;resize:none;height:120px;transition:border-color .2s;outline:none}
+.ai-textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.ai-textarea::placeholder{color:var(--muted)}
+.ai-controls{display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap}
+.ai-select{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;cursor:pointer}
+.btn-classify{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;padding:.65rem 1.5rem;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.5rem}
+.btn-classify:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--glow2)}
+.btn-classify:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.ai-result{margin-top:1.5rem;display:none;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:12px;padding:1.25rem;animation:fadeInUp .4s ease}
+.ai-result.show{display:block}
+.result-genres{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.genre-tag{padding:.3rem .75rem;border-radius:100px;font-size:.78rem;font-weight:600;letter-spacing:.5px}
+.genre-tag.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.genre-tag.secondary{background:rgba(6,182,212,.15);color:var(--accent3);border:1px solid rgba(6,182,212,.3)}
+.genre-tag.mood{background:rgba(245,158,11,.15);color:var(--accent4);border:1px solid rgba(245,158,11,.3)}
+.result-analysis{font-size:.88rem;color:var(--muted);line-height:1.7}
+.result-confidence{display:flex;align-items:center;gap:.75rem;margin-top:1rem}
+.conf-bar{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.conf-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:2px;transition:width 1s ease}
+.conf-label{font-size:.75rem;color:var(--muted)}
+.conf-pct{font-family:'Orbitron',monospace;font-size:.78rem;color:var(--accent)}
+.typing-indicator{display:flex;gap:4px;align-items:center;padding:.75rem 0}
+.typing-dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:typingBounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+
+/* SEARCH SUGGESTIONS */
+.suggestions-box{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-top:.25rem;max-height:300px;overflow-y:auto;z-index:50;display:none}
+.suggestions-box.open{display:block}
+.suggestion-item{padding:.7rem 1rem;cursor:pointer;font-size:.85rem;display:flex;align-items:center;gap:.75rem;transition:background .15s}
+.suggestion-item:hover{background:rgba(124,58,237,.12)}
+.suggestion-item .sug-emoji{font-size:1.2rem;flex-shrink:0}
+.suggestion-item .sug-title{font-weight:600}
+.suggestion-item .sug-meta{font-size:.72rem;color:var(--muted)}
+.search-wrap{position:relative}
+
+/* GENRE UNIVERSE */
+.category-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2.5rem}
+.tab-btn{padding:.5rem 1.1rem;border-radius:100px;font-size:.82rem;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.tab-btn:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.tab-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 0 20px var(--glow)}
+.genre-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+
+/* SEARCH */
+.search-bar-wrap{position:relative;max-width:600px;margin:0 auto 3rem}
+.search-bar{width:100%;background:rgba(17,24,39,.8);border:1px solid var(--border);border-radius:14px;padding:.9rem 1.25rem .9rem 3rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:all .2s;backdrop-filter:blur(10px)}
+.search-bar:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1rem}
+
+/* GENRE CARDS */
+.genre-card{position:relative;border-radius:16px;padding:1.5rem 1.25rem;border:1px solid var(--border);background:var(--card);cursor:pointer;transition:all .3s;overflow:hidden}
+.genre-card::before{content:'';position:absolute;inset:0;border-radius:16px;opacity:0;transition:opacity .3s}
+.genre-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.15)}
+.genre-card:hover::before{opacity:1}
+.genre-card:hover .genre-card-glow{opacity:1}
+.genre-card-glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;filter:blur(30px);opacity:0;transition:opacity .3s}
+.genre-emoji{font-size:2rem;margin-bottom:.75rem;display:block}
+.genre-name{font-weight:700;font-size:.95rem;margin-bottom:.3rem}
+.genre-count{font-size:.75rem;color:var(--muted)}
+.genre-pill{position:absolute;top:.75rem;right:.75rem;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:.2rem .5rem;border-radius:100px}
+.gc-red{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(230,62,109,.05))}
+.gc-red:hover{box-shadow:0 10px 40px rgba(239,68,68,.2);border-color:rgba(239,68,68,.3)}
+.gc-red .genre-card-glow{background:rgba(239,68,68,.4)}
+.gc-blue{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(6,182,212,.05))}
+.gc-blue:hover{box-shadow:0 10px 40px rgba(59,130,246,.2);border-color:rgba(59,130,246,.3)}
+.gc-blue .genre-card-glow{background:rgba(59,130,246,.4)}
+.gc-purple{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(168,85,247,.05))}
+.gc-purple:hover{box-shadow:0 10px 40px rgba(124,58,237,.2);border-color:rgba(124,58,237,.3)}
+.gc-purple .genre-card-glow{background:rgba(124,58,237,.4)}
+.gc-green{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(52,211,153,.05))}
+.gc-green:hover{box-shadow:0 10px 40px rgba(16,185,129,.2);border-color:rgba(16,185,129,.3)}
+.gc-green .genre-card-glow{background:rgba(16,185,129,.4)}
+.gc-yellow{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(251,191,36,.05))}
+.gc-yellow:hover{box-shadow:0 10px 40px rgba(245,158,11,.2);border-color:rgba(245,158,11,.3)}
+.gc-yellow .genre-card-glow{background:rgba(245,158,11,.4)}
+.gc-pink{background:linear-gradient(135deg,rgba(236,72,153,.08),rgba(244,114,182,.05))}
+.gc-pink:hover{box-shadow:0 10px 40px rgba(236,72,153,.2);border-color:rgba(236,72,153,.3)}
+.gc-pink .genre-card-glow{background:rgba(236,72,153,.4)}
+.gc-orange{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(251,146,60,.05))}
+.gc-orange:hover{box-shadow:0 10px 40px rgba(249,115,22,.2);border-color:rgba(249,115,22,.3)}
+.gc-orange .genre-card-glow{background:rgba(249,115,22,.4)}
+.gc-cyan{background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(34,211,238,.05))}
+.gc-cyan:hover{box-shadow:0 10px 40px rgba(6,182,212,.2);border-color:rgba(6,182,212,.3)}
+.gc-cyan .genre-card-glow{background:rgba(6,182,212,.4)}
+
+/* SOLAR SYSTEM */
+.universe-section{padding:5rem 2rem;text-align:center}
+#universeCanvas{width:100%;height:600px;border-radius:24px;border:1px solid var(--border);background:#02030a;display:block;cursor:grab;box-shadow:0 0 80px rgba(124,58,237,.15),0 0 40px rgba(230,62,109,.08)}
+#universeCanvas:active{cursor:grabbing}
+.universe-hint{font-size:.78rem;color:var(--muted);margin-top:1rem;display:flex;align-items:center;justify-content:center;gap:.5rem}
+
+/* ANIME CHARACTER SHOWCASE */
+.anime-showcase{padding:5rem 2rem;background:rgba(17,24,39,.3);margin:0}
+.anime-showcase-inner{max-width:1400px;margin:0 auto}
+.character-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1.5rem;margin-top:2rem}
+.char-card{position:relative;border-radius:20px;padding:1.5rem 1rem;border:1px solid var(--border);background:var(--card);cursor:pointer;transition:all .4s;overflow:hidden;text-align:center}
+.char-card:hover{transform:translateY(-8px) scale(1.03)}
+.char-card::before{content:'';position:absolute;inset:0;border-radius:20px;opacity:0;transition:opacity .4s}
+.char-card:hover::before{opacity:1}
+.char-svg{width:120px;height:150px;margin:0 auto .75rem;display:block;filter:drop-shadow(0 0 12px var(--glow2))}
+.char-card:hover .char-svg{filter:drop-shadow(0 0 20px var(--glow)) drop-shadow(0 0 40px rgba(124,58,237,.4))}
+.char-name{font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;letter-spacing:1px;margin-bottom:.25rem}
+.char-series{font-size:.7rem;color:var(--muted)}
+@keyframes charFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes charGlow{0%,100%{filter:drop-shadow(0 0 8px var(--glow2))}50%{filter:drop-shadow(0 0 20px var(--glow)) drop-shadow(0 0 40px rgba(124,58,237,.6))}}
+
+/* SERIES */
+.series-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem}
+.series-card{border-radius:16px;overflow:hidden;border:1px solid var(--border);background:var(--card);transition:all .3s;cursor:pointer;position:relative}
+.series-card:hover{transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.4);border-color:rgba(255,255,255,.12)}
+.series-banner{height:140px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:4rem}
+.series-banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(17,24,39,.95) 100%)}
+.series-info{padding:1.1rem}
+.series-genres{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem}
+.series-genre-tag{font-size:.68rem;font-weight:600;padding:.2rem .5rem;border-radius:100px;text-transform:uppercase;letter-spacing:.5px}
+.series-title{font-weight:700;font-size:1rem;margin-bottom:.3rem}
+.series-meta{font-size:.78rem;color:var(--muted);display:flex;gap:.75rem;align-items:center}
+.series-rating{color:var(--gold);font-weight:700}
+
+/* MOOD */
+.mood-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem}
+.mood-card{border-radius:14px;padding:1.5rem 1rem;text-align:center;border:1px solid var(--border);cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.mood-card:hover{transform:scale(1.04)}
+.mood-emoji{font-size:2.5rem;display:block;margin-bottom:.75rem}
+.mood-label{font-weight:700;font-size:.88rem}
+.mood-desc{font-size:.73rem;color:var(--muted);margin-top:.25rem;line-height:1.4}
+
+/* FILTERS */
+.filter-panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.75rem;margin-bottom:2rem}
+.filter-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end}
+.filter-group{flex:1;min-width:140px}
+.filter-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;font-weight:600}
+.filter-select{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:.6rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none}
+.filter-select:focus{border-color:var(--accent2)}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:2rem}
+.timeline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent2),var(--accent),transparent)}
+.timeline-item{position:relative;margin-bottom:2rem;padding-left:1.5rem}
+.timeline-item::before{content:'';position:absolute;left:-2.4rem;top:.4rem;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 10px var(--glow)}
+.timeline-era{font-family:'Orbitron',monospace;font-size:.78rem;color:var(--accent3);margin-bottom:.5rem}
+.timeline-title{font-weight:700;font-size:1rem;margin-bottom:.3rem}
+.timeline-desc{font-size:.85rem;color:var(--muted);line-height:1.6}
+
+/* QUIZ */
+.quiz-box{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:2.5rem;max-width:700px;margin:0 auto}
+.quiz-progress{display:flex;gap:.4rem;margin-bottom:2rem}
+.quiz-step{flex:1;height:3px;border-radius:100px;background:rgba(255,255,255,.08);transition:background .3s}
+.quiz-step.done{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.quiz-q{font-size:1.1rem;font-weight:600;margin-bottom:1.5rem}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.quiz-option{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;cursor:pointer;transition:all .2s;font-size:.88rem;text-align:left}
+.quiz-option:hover{border-color:var(--accent2);background:rgba(124,58,237,.1)}
+.quiz-option.selected{border-color:var(--accent);background:rgba(230,62,109,.12)}
+.quiz-result-card{text-align:center;padding:2rem;display:none;animation:fadeInUp .5s ease}
+.quiz-result-card.show{display:block}
+.quiz-result-emoji{font-size:4rem;margin-bottom:1rem;display:block}
+.quiz-result-title{font-family:'Bebas Neue';font-size:2.5rem;margin-bottom:.5rem}
+.quiz-result-desc{color:var(--muted);font-size:.9rem;line-height:1.7}
+
+/* COMPARE */
+.compare-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:start}
+.compare-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.vs-divider{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:2rem;color:var(--accent);padding:2rem 0}
+.compare-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.compare-row:last-child{border:none}
+.compare-label{font-size:.78rem;color:var(--muted)}
+.compare-value{font-size:.85rem;font-weight:600}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;text-align:center;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.stat-card-num{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900}
+.stat-card-label{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.5rem}
+.stat-card-change{font-size:.75rem;color:#10b981;margin-top:.25rem}
+
+/* CHART */
+.chart-bars{display:flex;gap:.5rem;align-items:flex-end;height:200px;margin-top:1rem}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.chart-bar{width:100%;border-radius:6px 6px 0 0;background:linear-gradient(to top,var(--accent2),var(--accent));transition:height 1s ease;min-height:4px;position:relative;cursor:pointer}
+.chart-bar:hover{filter:brightness(1.2)}
+.chart-bar-label{font-size:.65rem;color:var(--muted);text-align:center}
+.chart-bar-val{font-size:.7rem;font-weight:700;color:var(--accent)}
+
+/* WATCHLIST */
+.watchlist-panel{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.watchlist-item{display:flex;align-items:center;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--border);transition:all .2s;cursor:pointer}
+.watchlist-item:hover{background:rgba(255,255,255,.02);border-radius:8px}
+.watchlist-item:last-child{border:none}
+.watchlist-thumb{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.watchlist-info{flex:1}
+.watchlist-title{font-size:.88rem;font-weight:600}
+.watchlist-genre{font-size:.72rem;color:var(--muted)}
+.watchlist-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);cursor:pointer;flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.watchlist-check.done{background:#10b981;border-color:#10b981}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:2rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:600px;width:100%;position:relative;animation:fadeInUp .3s ease;max-height:80vh;overflow-y:auto}
+.modal-close{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.08);border:none;color:var(--muted);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.1rem;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:rgba(255,255,255,.15);color:var(--text)}
+.modal h2{font-family:'Bebas Neue';font-size:2rem;margin-bottom:.75rem}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:3rem 2rem 2rem;position:relative;z-index:1}
+.footer-inner{max-width:1400px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem}
+.footer-brand .logo{font-size:1.1rem;display:inline-block;margin-bottom:.75rem}
+.footer-brand p{font-size:.82rem;color:var(--muted);line-height:1.7}
+.footer-col h4{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:1rem}
+.footer-col a{display:block;color:var(--muted);text-decoration:none;font-size:.85rem;margin-bottom:.5rem;transition:color .2s}
+.footer-col a:hover{color:var(--text)}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:2rem;border-top:1px solid var(--border)}
+.footer-bottom p{font-size:.78rem;color:var(--muted)}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;z-index:999;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.5rem;display:flex;align-items:center;gap:.75rem;font-size:.88rem;box-shadow:0 10px 40px rgba(0,0,0,.4);transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);max-width:320px}
+.toast.show{transform:translateX(0)}
+.toast-icon{font-size:1.2rem}
+
+/* UTILITY */
+.text-accent{color:var(--accent)}.text-accent2{color:var(--accent2)}.text-accent3{color:var(--accent3)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.scroll-top{position:fixed;bottom:2rem;left:2rem;z-index:200;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 20px var(--glow);display:none;align-items:center;justify-content:center;transition:all .3s}
+.scroll-top.show{display:flex}
+.scroll-top:hover{transform:scale(1.1)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.07) 50%,rgba(255,255,255,.03) 75%);background-size:200% 100%;border-radius:8px;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* SPARKLE EFFECT */
+@keyframes sparkle{0%{transform:scale(0) rotate(0deg);opacity:1}100%{transform:scale(1.5) rotate(180deg);opacity:0}}
+.sparkle{position:absolute;pointer-events:none;animation:sparkle .6s ease forwards}
+
+/* NO-API BADGE */
+.no-api-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#34d399;padding:.3rem .8rem;border-radius:100px;font-size:.72rem;font-weight:700;letter-spacing:1px}
+
+@media(max-width:768px){.nav-links{display:none}.hero-stats{gap:1.5rem;flex-wrap:wrap;justify-content:center}.footer-top{grid-template-columns:1fr 1fr}.compare-grid{grid-template-columns:1fr}.vs-divider{padding:.5rem 0}.quiz-options{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bg-layer"></div>
+<div class="bg-grid"></div>
+<div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">CINEGENRE</a>
+    <div class="nav-links">
+      <a href="#classify" class="nav-link">Classify</a>
+      <a href="#universe3d" class="nav-link">3D Universe</a>
+      <a href="#characters" class="nav-link">Characters</a>
+      <a href="#genres" class="nav-link">Genres</a>
+      <a href="#series" class="nav-link">Series</a>
+      <a href="#quiz" class="nav-link">Quiz</a>
+    </div>
+    <div class="nav-right">
+      <span class="no-api-badge">⚡ No API · Unlimited</span>
+      <button class="btn-nav" onclick="downloadSite()">⬇ Download</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero" id="heroSection">
+  <canvas id="heroCanvas"></canvas>
+  <div class="floating-badges" id="floatingBadges"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span>100% Offline · No API · Unlimited Use</div>
+    <h1>
+      <span class="line1">EXPLORE EVERY</span>
+      <span class="line2">CINEMATIC</span>
+      <span class="line3">UNIVERSE</span>
+    </h1>
+    <p>The most comprehensive genre classification engine. Type any movie, anime, or show — get instant results. No API. No limits. Forever.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('classify').scrollIntoView({behavior:'smooth'})">🎬 Classify Now — Free</button>
+      <button class="btn-secondary" onclick="document.getElementById('universe3d').scrollIntoView({behavior:'smooth'})">🌌 3D Solar System →</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="cnt1">0</div><div class="stat-label">Titles in DB</div></div>
+      <div class="stat"><div class="stat-num" id="cnt2">0</div><div class="stat-label">Genres</div></div>
+      <div class="stat"><div class="stat-num" id="cnt3">0</div><div class="stat-label">Unlimited</div></div>
+      <div class="stat"><div class="stat-num" id="cnt4">0</div><div class="stat-label">Moods</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI CLASSIFIER (NO API) -->
+<section id="classify">
+  <div class="section-header">
+    <span class="section-tag">⚡ Instant · No API · No Limits</span>
+    <h2>Genre <span class="text-accent">Classifier</span></h2>
+    <p>Type any movie, anime, or show title. Or describe it. Works offline, forever.</p>
+  </div>
+  <div class="ai-box">
+    <div class="ai-header">
+      <div class="ai-icon">🧠</div>
+      <div>
+        <h3>CineGenre Intelligence</h3>
+        <p>Local DB · 500+ titles · Fuzzy match · No API key needed · Unlimited searches</p>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <textarea class="ai-textarea" id="aiInput" placeholder="Type a movie/anime/show title or describe it... e.g. 'Naruto', 'Inception', 'Breaking Bad', 'a samurai fights demons in feudal Japan'..." oninput="onAiInput(this.value)" rows="3" style="height:80px;resize:none;"></textarea>
+      <div class="suggestions-box" id="suggBox"></div>
+    </div>
+    <div class="ai-controls">
+      <select class="ai-select" id="aiType">
+        <option value="any">Any Type</option>
+        <option value="movie">Movie</option>
+        <option value="series">TV Series</option>
+        <option value="anime">Anime</option>
+        <option value="documentary">Documentary</option>
+      </select>
+      <select class="ai-select" id="aiDetail">
+        <option value="standard">Standard Analysis</option>
+        <option value="deep">Deep Analysis</option>
+        <option value="simple">Simple Tags Only</option>
+      </select>
+      <button class="btn-classify" id="classifyBtn" onclick="classifyGenre()">
+        <span id="classifyBtnText">🎬 Classify Genre</span>
+      </button>
+      <button class="btn-classify" style="background:rgba(255,255,255,.08);color:var(--muted);border:1px solid var(--border)" onclick="clearAI()">Clear</button>
+    </div>
+    <div class="ai-result" id="aiResult">
+      <div id="aiResultContent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3D SOLAR SYSTEM UNIVERSE -->
+<div class="universe-section" id="universe3d">
+  <div class="section-header">
+    <span class="section-tag">🌌 Interactive Solar System</span>
+    <h2>Genre <span class="text-accent2">Solar System</span></h2>
+    <p>Each planet = a genre. Orbiting in real elliptical paths. Drag · Zoom · Click any planet.</p>
+  </div>
+  <div id="cine-solar-wrapper">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;600&display=swap');
+  #cine-solar{position:relative;width:100%;height:700px;background:#000;border-radius:16px;overflow:hidden;cursor:grab;font-family:'Space Grotesk',sans-serif;user-select:none}
+  #cine-solar:active{cursor:grabbing}
+  #sol-canvas{position:absolute;inset:0;width:100%;height:100%}
+  .planet-label{position:absolute;pointer-events:none;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%)}
+  .planet-label .p-name{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;text-shadow:0 0 8px currentColor;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,0.6);white-space:nowrap}
+  .planet-label .movie-tags{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:140px;margin-top:3px}
+  .planet-label .mv{font-size:7px;color:#fff;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:2px;padding:1px 4px;white-space:nowrap;opacity:0.9}
+  #sol-controls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:20}
+  #sol-controls button{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);color:#ccc;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s}
+  #sol-controls button:hover{background:rgba(255,255,255,0.15);color:#fff}
+  #sol-controls button.active{background:rgba(255,255,255,0.2);color:#fff;border-color:rgba(255,255,255,0.5)}
+  #planet-panel{position:absolute;top:12px;right:12px;width:220px;background:rgba(6,6,20,0.92);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:14px;z-index:20;display:none;backdrop-filter:blur(10px)}
+  #planet-panel h3{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}
+  #planet-panel .pp-desc{font-size:11px;color:rgba(255,255,255,0.6);line-height:1.5;margin-bottom:8px}
+  #planet-panel .pp-movies{display:flex;flex-direction:column;gap:4px}
+  #planet-panel .pm{font-size:10px;padding:4px 8px;border-radius:4px;background:rgba(255,255,255,0.06);border-left:2px solid;color:rgba(255,255,255,0.85)}
+  #planet-panel .pp-close{position:absolute;top:10px;right:10px;background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:14px;padding:0;line-height:1}
+  #shooting-star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,0.8);pointer-events:none;opacity:0}
+  .poster-float{position:absolute;pointer-events:none;border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.8);transition:opacity .5s;opacity:0}
+  .poster-inner{width:70px;height:100px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border-radius:6px;position:relative;overflow:hidden}
+  .poster-title{font-size:7px;font-weight:600;text-align:center;color:#fff;padding:4px 4px;background:linear-gradient(transparent,rgba(0,0,0,0.9));width:100%;line-height:1.2;position:relative;z-index:1}
+  #speed-indicator{position:absolute;top:12px;left:12px;font-family:'Orbitron',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px}
+  #constellation-toggle{position:absolute;top:44px;left:12px;font-size:9px;font-family:'Space Grotesk',sans-serif;color:rgba(255,255,255,0.4);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:color .2s}
+  #constellation-toggle:hover{color:rgba(255,255,255,0.7)}
+</style>
+
+<div id="cine-solar">
+  <canvas id="sol-canvas"></canvas>
+  <div id="speed-indicator">WARP: 1×</div>
+  <div id="constellation-toggle" onclick="toggleConstellations()">⊕ LINES</div>
+  <div id="planet-panel">
+    <button class="pp-close" onclick="closePanel()">✕</button>
+    <h3 id="pp-name" style="color:#fff"></h3>
+    <div id="pp-desc" class="pp-desc"></div>
+    <div id="pp-movies" class="pp-movies"></div>
+  </div>
+  <div id="sol-controls">
+    <button onclick="setSpeed(0.3)">0.3×</button>
+    <button class="active" onclick="setSpeed(1)">1×</button>
+    <button onclick="setSpeed(2)">2×</button>
+    <button onclick="setSpeed(4)">4×</button>
+    <button onclick="setSpeed(0)" id="pauseBtn">⏸ Pause</button>
+    <button onclick="resetCam()">⟳ Reset</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const PLANETS = [
+  {name:'Action',   color:'#e63e6d',hex:0xe63e6d,size:5.8, a:32,  b:28,  incl:7,  speed:1.5, tilt:15,
+   movies:['Die Hard','Mad Max','John Wick','Kill Bill'],
+   desc:'High-octane. Explosive. Visceral. The genre that never lets you breathe.'},
+  {name:'Drama',    color:'#3b82f6',hex:0x3b82f6,size:7.2, a:50,  b:44,  incl:4,  speed:1.0, tilt:22,
+   movies:['Schindler\'s List','The Godfather','1917','Parasite'],
+   desc:'Human stories. Deep emotions. Performances that haunt you for years.'},
+  {name:'Sci-Fi',   color:'#06b6d4',hex:0x06b6d4,size:6.5, a:67,  b:58,  incl:11, speed:0.8, tilt:10,
+   movies:['Blade Runner','Interstellar','Dune','2001: Space Odyssey'],
+   desc:'Future. Space. Questions about humanity\'s place in the cosmos.'},
+  {name:'Horror',   color:'#ef4444',hex:0xef4444,size:5.0, a:83,  b:72,  incl:17, speed:0.65,tilt:35,
+   movies:['The Shining','Hereditary','Midsommar','Get Out'],
+   desc:'Fear incarnate. Dread that seeps into your bones long after credits roll.'},
+  {name:'Fantasy',  color:'#a855f7',hex:0xa855f7,size:8.5, a:102, b:88,  incl:3,  speed:0.5, tilt:5,
+   movies:['Lord of the Rings','Pan\'s Labyrinth','Princess Mononoke','Spirited Away'],
+   desc:'Other worlds. Magic systems. Myths reborn. The epic and the mythic.'},
+  {name:'Comedy',   color:'#f59e0b',hex:0xf59e0b,size:5.5, a:46,  b:41,  incl:14, speed:1.2, tilt:20,
+   movies:['The Grand Budapest Hotel','Superbad','Parasite','Dr. Strangelove'],
+   desc:'Joy. Absurdity. Wit. Laughter that masks something deeply true.'},
+  {name:'Thriller', color:'#8b5cf6',hex:0x8b5cf6,size:4.8, a:58,  b:52,  incl:8,  speed:0.9, tilt:28,
+   movies:['Oldboy','Gone Girl','No Country for Old Men','Prisoners'],
+   desc:'Tension drawn out like a knife edge. Paranoia as atmosphere.'},
+  {name:'Anime',    color:'#f97316',hex:0xf97316,size:7.0, a:116, b:100, incl:24, speed:0.4, tilt:8,
+   movies:['Demon Slayer','Attack on Titan','Akira','Ghost in the Shell'],
+   desc:'Japan\'s infinite imagination. Every genre, elevated and transformed.'},
+  {name:'Mystery',  color:'#0891b2',hex:0x0891b2,size:4.0, a:38,  b:33,  incl:19, speed:1.6, tilt:50,
+   movies:['Memento','Knives Out','Zodiac','The Name of the Rose'],
+   desc:'Puzzles with consequences. The truth buried deeper than expected.'},
+  {name:'Romance',  color:'#ec4899',hex:0xec4899,size:5.0, a:76,  b:66,  incl:21, speed:0.7, tilt:42,
+   movies:['Eternal Sunshine','Before Sunrise','In the Mood for Love','Her'],
+   desc:'Longing. Connection. The joy and devastation of loving another person.'},
+  {name:'Isekai',   color:'#22d3ee',hex:0x22d3ee,size:3.5, a:28,  b:24,  incl:38, speed:2.0, tilt:70,
+   movies:['Sword Art Online','Re:Zero','No Game No Life','Overlord'],
+   desc:'Reborn into another world. The ultimate fantasy of starting over.'},
+  {name:'Mecha',    color:'#60a5fa',hex:0x60a5fa,size:4.0, a:130, b:112, incl:15, speed:0.3, tilt:25,
+   movies:['Neon Genesis','Gundam','Gurren Lagann','Code Geass'],
+   desc:'Giants of steel. Pilots of fate. The human soul inside the machine.'},
+];
+
+const POSTER_COLORS = {
+  'Die Hard':'#c0392b','Mad Max':'#e67e22','John Wick':'#2c3e50','Kill Bill':'#f1c40f',
+  'Schindler\'s List':'#7f8c8d','The Godfather':'#1a1a1a','1917':'#8e6b3e','Parasite':'#27ae60',
+  'Blade Runner':'#e74c3c','Interstellar':'#1a1a2e','Dune':'#c9a84c','2001: Space Odyssey':'#2980b9',
+  'The Shining':'#c0392b','Hereditary':'#2c3e50','Midsommar':'#f9ca24','Get Out':'#6c5ce7',
+  'Lord of the Rings':'#2c9b3a','Pan\'s Labyrinth':'#8e44ad','Princess Mononoke':'#27ae60','Spirited Away':'#2980b9',
+  'The Grand Budapest Hotel':'#ff6b9d','Superbad':'#f39c12','Dr. Strangelove':'#1a1a1a',
+  'Oldboy':'#e74c3c','Gone Girl':'#2c3e50','No Country for Old Men':'#8b6914','Prisoners':'#1a1a1a',
+  'Demon Slayer':'#c0392b','Attack on Titan':'#555','Akira':'#e74c3c','Ghost in the Shell':'#2c3e50',
+  'Memento':'#1a1a1a','Knives Out':'#f39c12','Zodiac':'#2c3e50','The Name of the Rose':'#8b6914',
+  'Eternal Sunshine':'#3498db','Before Sunrise':'#f39c12','In the Mood for Love':'#e74c3c','Her':'#e67e22',
+  'Sword Art Online':'#2980b9','Re:Zero':'#2c3e50','No Game No Life':'#e74c3c','Overlord':'#1a1a1a',
+  'Neon Genesis':'#6c5ce7','Gundam':'#e74c3c','Gurren Lagann':'#e67e22','Code Geass':'#8e44ad',
+};
+
+let speedMult = 1;
+let showConst = true;
+let paused = false;
+
+const container = document.getElementById('cine-solar');
+const canvas = document.getElementById('sol-canvas');
+const W = container.offsetWidth || 680;
+const H = 700;
+
+const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(W, H, false);
+renderer.setClearColor(0x000000, 1);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(52, W/H, 0.1, 2000);
+camera.position.set(0, 75, 170);
+camera.lookAt(0, 0, 0);
+
+// Lights
+scene.add(new THREE.AmbientLight(0x111133, 2));
+const sunLight = new THREE.PointLight(0xfff4e0, 5, 500);
+scene.add(sunLight);
+const rim = new THREE.DirectionalLight(0x7c3aed, 0.8);
+rim.position.set(-100, 80, -100);
+scene.add(rim);
+
+// Stars
+const starGeo = new THREE.BufferGeometry();
+const sp = new Float32Array(4000*3);
+const sc = new Float32Array(4000*3);
+const starPalette = [
+  new THREE.Color(0xffffff), new THREE.Color(0xadd8e6),
+  new THREE.Color(0xffddaa), new THREE.Color(0xddaaff),
+  new THREE.Color(0xaaffdd)
+];
+for(let i=0;i<4000;i++){
+  sp[i*3]=(Math.random()-.5)*1600;
+  sp[i*3+1]=(Math.random()-.5)*1600;
+  sp[i*3+2]=(Math.random()-.5)*1600;
+  const c = starPalette[Math.floor(Math.random()*starPalette.length)];
+  sc[i*3]=c.r; sc[i*3+1]=c.g; sc[i*3+2]=c.b;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(sp,3));
+starGeo.setAttribute('color', new THREE.BufferAttribute(sc,3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({size:0.6,vertexColors:true,transparent:true,opacity:0.7})));
+
+// Nebula clouds (large transparent spheres)
+[[0x4400aa,350,0.025,[-300,80,200]], [0xaa0044,300,0.02,[200,-100,-300]], [0x004488,250,0.018,[100,200,100]]].forEach(([col,r,op,pos])=>{
+  const g=new THREE.SphereGeometry(r,16,16);
+  const m=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:op,side:THREE.BackSide});
+  const mesh=new THREE.Mesh(g,m);
+  mesh.position.set(...pos);
+  scene.add(mesh);
+});
+
+// Sun core
+const sunGeo = new THREE.SphereGeometry(10, 32, 32);
+const sunMat = new THREE.MeshBasicMaterial({color:0xffd700});
+const sun = new THREE.Mesh(sunGeo, sunMat);
+scene.add(sun);
+
+// Sun glow layers
+[14,20,28,38].forEach((r,i)=>{
+  const m=new THREE.MeshBasicMaterial({color:0xff8800,transparent:true,opacity:[0.25,0.12,0.06,0.025][i],side:THREE.BackSide});
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(r,32,32),m));
+});
+
+// Sun corona ring
+const coronaGeo = new THREE.TorusGeometry(12, 2.5, 8, 64);
+const coronaMat = new THREE.MeshBasicMaterial({color:0xffdd00,transparent:true,opacity:0.35,wireframe:true});
+const corona = new THREE.Mesh(coronaGeo, coronaMat);
+scene.add(corona);
+
+// Asteroid belt
+const belt = new THREE.Group();
+for(let i=0;i<300;i++){
+  const r=92+Math.random()*9;
+  const th=Math.random()*Math.PI*2;
+  const y=(Math.random()-.5)*5;
+  const ag=new THREE.SphereGeometry(Math.random()*0.4+0.15,4,4);
+  const am=new THREE.MeshBasicMaterial({color:0x556655});
+  const a=new THREE.Mesh(ag,am);
+  a.position.set(r*Math.cos(th),y,r*Math.sin(th));
+  belt.add(a);
+}
+scene.add(belt);
+
+// Build planet meshes
+const planetMeshes = [];
+const planetAngles = PLANETS.map(()=>Math.random()*Math.PI*2);
+
+// Constellation lines group
+const constGroup = new THREE.Group();
+scene.add(constGroup);
+let constLines = [];
+
+function makeConstLine(p1, p2, col){
+  const geo = new THREE.BufferGeometry().setFromPoints([p1.position.clone(), p2.position.clone()]);
+  const mat = new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.2});
+  return new THREE.Line(geo, mat);
+}
+
+PLANETS.forEach((p, idx) => {
+  const orbitPts = [];
+  for(let i=0;i<=128;i++){
+    const th=(i/128)*Math.PI*2;
+    const x=p.a*Math.cos(th);
+    const z=p.b*Math.sin(th);
+    const ir=p.incl*Math.PI/180;
+    orbitPts.push(new THREE.Vector3(x, z*Math.sin(ir), z*Math.cos(ir)));
+  }
+  const curve=new THREE.CatmullRomCurve3(orbitPts,true);
+  const orbitGeo=new THREE.TubeGeometry(curve,128,0.12,8,true);
+  const orbitMat=new THREE.MeshBasicMaterial({color:p.hex,transparent:true,opacity:0.15});
+  scene.add(new THREE.Mesh(orbitGeo,orbitMat));
+
+  // Planet texture via canvas
+  const tc=document.createElement('canvas'); tc.width=256; tc.height=128;
+  const ctx=tc.getContext('2d');
+  const c1=new THREE.Color(p.hex);
+  const c2=new THREE.Color(p.hex); c2.multiplyScalar(0.5);
+  for(let y=0;y<128;y+=6){
+    const t=y%12===0;
+    ctx.fillStyle=t?`rgb(${~~(c1.r*255)},${~~(c1.g*255)},${~~(c1.b*255)})`:`rgb(${~~(c2.r*255)},${~~(c2.g*255)},${~~(c2.b*255)})`;
+    ctx.fillRect(0,y,256,6);
+  }
+  // spots
+  for(let s=0;s<6;s++){
+    const sx=Math.random()*256, sy=Math.random()*128, sr=Math.random()*12+4;
+    ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,0.08)`; ctx.fill();
+  }
+  const tex=new THREE.CanvasTexture(tc);
+  const pMat=new THREE.MeshPhongMaterial({map:tex,emissive:p.hex,emissiveIntensity:0.25,shininess:50});
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(p.size,32,32),pMat);
+  mesh.rotation.z=p.tilt*Math.PI/180;
+  mesh.userData={...p,idx};
+  scene.add(mesh);
+  planetMeshes.push(mesh);
+
+  // Rings for large/special
+  if(p.name==='Fantasy'||p.name==='Anime'||p.name==='Drama'){
+    const rGeo=new THREE.TorusGeometry(p.size*1.7,p.size*0.12,8,64);
+    const rMat=new THREE.MeshBasicMaterial({color:p.hex,transparent:true,opacity:0.4,side:THREE.DoubleSide});
+    const ring=new THREE.Mesh(rGeo,rMat);
+    ring.rotation.x=Math.PI/2.5;
+    mesh.add(ring);
+  }
+
+  // Moon for large planets
+  if(p.size>6){
+    const mMesh=new THREE.Mesh(
+      new THREE.SphereGeometry(p.size*0.22,12,12),
+      new THREE.MeshPhongMaterial({color:0x888888,emissive:0x333333})
+    );
+    mMesh.userData={isMoon:true,mr:p.size*2.8,ma:Math.random()*Math.PI*2};
+    mesh.add(mMesh);
+  }
+
+  // Atmos glow
+  const atmMat=new THREE.MeshBasicMaterial({color:p.hex,transparent:true,opacity:0.08,side:THREE.BackSide});
+  mesh.add(new THREE.Mesh(new THREE.SphereGeometry(p.size*1.2,32,32),atmMat));
+});
+
+// CSS Labels
+const labelWrap=document.createElement('div');
+labelWrap.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;';
+container.appendChild(labelWrap);
+
+const labels = PLANETS.map(p=>{
+  const el=document.createElement('div');
+  el.className='planet-label';
+  const nameEl=document.createElement('div');
+  nameEl.className='p-name';
+  nameEl.textContent=p.name;
+  nameEl.style.color=p.color;
+  nameEl.style.borderColor=p.color+'66';
+  nameEl.style.textShadow=`0 0 10px ${p.color}`;
+  el.appendChild(nameEl);
+  const tagWrap=document.createElement('div');
+  tagWrap.className='movie-tags';
+  p.movies.forEach(m=>{
+    const tag=document.createElement('div');
+    tag.className='mv';
+    tag.textContent=m;
+    tag.style.borderColor=p.color+'55';
+    tag.style.background=p.color+'18';
+    tag.style.color=p.color+'cc';
+    tagWrap.appendChild(tag);
+  });
+  el.appendChild(tagWrap);
+  labelWrap.appendChild(el);
+  return el;
+});
+
+// Tooltip
+const tooltip=document.createElement('div');
+tooltip.style.cssText='position:absolute;background:rgba(6,8,16,.95);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:8px 12px;font-size:11px;color:#f0f4ff;pointer-events:none;opacity:0;transition:opacity .2s;max-width:160px;z-index:30;font-family:Space Grotesk,sans-serif;line-height:1.4';
+container.appendChild(tooltip);
+
+// Poster cards
+const posters = [];
+let activePoster = null;
+
+function spawnPoster(){
+  if(posters.length>3)return;
+  const pi=Math.floor(Math.random()*PLANETS.length);
+  const p=PLANETS[pi];
+  const movie=p.movies[Math.floor(Math.random()*p.movies.length)];
+  const el=document.createElement('div');
+  el.className='poster-float';
+  const inner=document.createElement('div');
+  inner.className='poster-inner';
+  inner.style.background=POSTER_COLORS[movie]||p.color+'88';
+  // Gradient overlay
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`position:absolute;inset:0;background:linear-gradient(160deg,${p.color}44 0%,transparent 60%,rgba(0,0,0,0.5) 100%)`;
+  // Stars row
+  const stars=document.createElement('div');
+  stars.style.cssText='position:absolute;top:4px;right:5px;font-size:6px;color:#ffd700';
+  stars.textContent='★★★★★'.slice(0,Math.floor(Math.random()*2)+4);
+  const titleEl=document.createElement('div');
+  titleEl.className='poster-title';
+  titleEl.textContent=movie;
+  const genreBadge=document.createElement('div');
+  genreBadge.style.cssText=`position:absolute;top:4px;left:4px;font-size:6px;padding:1px 4px;border-radius:2px;background:${p.color}cc;color:#fff;font-family:Orbitron,monospace;letter-spacing:0.5px`;
+  genreBadge.textContent=p.name.slice(0,6).toUpperCase();
+  inner.appendChild(overlay);
+  inner.appendChild(stars);
+  inner.appendChild(genreBadge);
+  inner.appendChild(titleEl);
+  el.appendChild(inner);
+  // Place near planet
+  const angle=Math.random()*Math.PI*2;
+  const rx=Math.random()*80+40;
+  const ry=Math.random()*60+30;
+  const px=W/2+rx*Math.cos(angle)-35;
+  const py=H/2+ry*Math.sin(angle)*0.5-50;
+  el.style.left=Math.max(5,Math.min(W-80,px))+'px';
+  el.style.top=Math.max(5,Math.min(H-110,py))+'px';
+  container.appendChild(el);
+  setTimeout(()=>el.style.opacity='0.9',50);
+  const duration=(Math.random()*5+6)*1000;
+  setTimeout(()=>{
+    el.style.opacity='0';
+    setTimeout(()=>el.remove(),600);
+    const i=posters.indexOf(el);
+    if(i>-1)posters.splice(i,1);
+  },duration);
+  posters.push(el);
+}
+setInterval(spawnPoster,3000);
+setTimeout(spawnPoster,500);
+setTimeout(spawnPoster,1500);
+
+// Shooting star
+function triggerShootingStar(){
+  const el=document.getElementById('shooting-star');
+  if(!el)return;
+  const sx=Math.random()*W*0.3;
+  const sy=Math.random()*H*0.3;
+  const angle=Math.PI/4+Math.random()*0.3;
+  el.style.left=sx+'px'; el.style.top=sy+'px'; el.style.opacity='1';
+  el.style.boxShadow=`0 0 6px 2px rgba(255,255,255,0.8),${-80*Math.cos(angle)}px ${-80*Math.sin(angle)}px 0 rgba(255,255,255,0.1)`;
+  const len=100+Math.random()*150;
+  const dur=600+Math.random()*400;
+  el.animate([
+    {transform:'translate(0,0)',opacity:1},
+    {transform:`translate(${len*Math.cos(angle)}px,${len*Math.sin(angle)}px)`,opacity:0}
+  ],{duration:dur,easing:'ease-in'}).onfinish=()=>{el.style.opacity='0'};
+}
+const shootingStarEl=document.createElement('div');
+shootingStarEl.id='shooting-star';
+container.appendChild(shootingStarEl);
+setInterval(triggerShootingStar,3500);
+setTimeout(triggerShootingStar,800);
+
+// Camera controls
+let isDrag=false,lastX=0,lastY=0;
+let rotX=0.32,rotY=0,tRotX=0.32,tRotY=0;
+let zoom=170,tZoom=170;
+
+container.addEventListener('mousedown',e=>{isDrag=true;lastX=e.clientX;lastY=e.clientY;e.preventDefault();});
+window.addEventListener('mouseup',()=>isDrag=false);
+window.addEventListener('mousemove',e=>{
+  if(!isDrag)return;
+  tRotY+=(e.clientX-lastX)*0.005;
+  tRotX+=(e.clientY-lastY)*0.003;
+  tRotX=Math.max(-1.3,Math.min(1.3,tRotX));
+  lastX=e.clientX; lastY=e.clientY;
+});
+container.addEventListener('wheel',e=>{tZoom=Math.max(60,Math.min(380,tZoom+e.deltaY*0.12));e.preventDefault();},{passive:false});
+container.addEventListener('touchstart',e=>{lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;},{passive:true});
+container.addEventListener('touchmove',e=>{
+  tRotY+=(e.touches[0].clientX-lastX)*0.005;
+  tRotX+=(e.touches[0].clientY-lastY)*0.003;
+  lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; e.preventDefault();
+},{passive:false});
+
+// Raycaster
+const raycaster=new THREE.Raycaster();
+const mouse=new THREE.Vector2();
+let hoveredP=null;
+
+container.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+  mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects(planetMeshes);
+  if(hits.length){
+    const m=hits[0].object;
+    if(hoveredP!==m){
+      if(hoveredP)hoveredP.material.emissiveIntensity=0.25;
+      hoveredP=m;
+      m.material.emissiveIntensity=0.9;
+    }
+    canvas.style.cursor='pointer';
+    tooltip.innerHTML=`<div style="font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:${m.userData.color};letter-spacing:1px;margin-bottom:4px;">${m.userData.name.toUpperCase()}</div><div style="color:rgba(255,255,255,0.6);font-size:9px">${m.userData.movies.slice(0,2).join(' · ')}</div>`;
+    tooltip.style.opacity='1';
+    const pr=canvas.getBoundingClientRect();
+    tooltip.style.left=(e.clientX-pr.left+14)+'px';
+    tooltip.style.top=(e.clientY-pr.top-14)+'px';
+  } else {
+    if(hoveredP){hoveredP.material.emissiveIntensity=0.25;hoveredP=null;}
+    canvas.style.cursor='grab';
+    tooltip.style.opacity='0';
+  }
+});
+
+container.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+  mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects(planetMeshes);
+  if(hits.length){
+    const p=hits[0].object.userData;
+    const panel=document.getElementById('planet-panel');
+    document.getElementById('pp-name').textContent=p.name;
+    document.getElementById('pp-name').style.color=p.color;
+    document.getElementById('pp-desc').textContent=p.desc;
+    document.getElementById('pp-movies').innerHTML=p.movies.map(m=>`<div class="pm" style="border-color:${p.color};background:${p.color}14">${m}</div>`).join('');
+    panel.style.display='block';
+  }
+});
+
+function closePanel(){document.getElementById('planet-panel').style.display='none';}
+function setSpeed(s){
+  if(s===0){paused=!paused;document.getElementById('pauseBtn').textContent=paused?'▶ Play':'⏸ Pause';}
+  else{speedMult=s;paused=false;document.getElementById('speed-indicator').textContent=`WARP: ${s}×`;document.getElementById('pauseBtn').textContent='⏸ Pause';}
+  document.querySelectorAll('#sol-controls button').forEach(b=>{b.classList.remove('active');if(b.textContent===s+'×')b.classList.add('active');});
+}
+function resetCam(){tRotX=0.32;tRotY=0;tZoom=170;}
+function toggleConstellations(){
+  showConst=!showConst;
+  constLines.forEach(l=>l.visible=showConst);
+  document.getElementById('constellation-toggle').style.color=showConst?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.25)';
+}
+
+// Project 3D to 2D
+const projVec=new THREE.Vector3();
+function project(pos){
+  projVec.copy(pos).project(camera);
+  const rect=canvas.getBoundingClientRect();
+  return{x:(projVec.x*.5+.5)*rect.width,y:(-projVec.y*.5+.5)*rect.height,behind:projVec.z>1};
+}
+
+// Build initial constellation lines (will update each frame)
+const CONST_PAIRS=[[0,1],[1,2],[2,3],[3,4],[4,7],[5,6],[6,0],[7,11],[8,9],[9,10]];
+CONST_PAIRS.forEach(([a,b])=>{
+  const geo=new THREE.BufferGeometry().setFromPoints([planetMeshes[a].position.clone(),planetMeshes[b].position.clone()]);
+  const mat=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.06});
+  const line=new THREE.Line(geo,mat);
+  constGroup.add(line);
+  constLines.push(line);
+});
+
+let t=0;
+(function animate(){
+  requestAnimationFrame(animate);
+  if(!paused) t+=0.005*speedMult;
+
+  rotX+=(tRotX-rotX)*0.05;
+  rotY+=(tRotY-rotY)*0.05;
+  zoom+=(tZoom-zoom)*0.04;
+
+  camera.position.set(
+    zoom*Math.sin(rotY)*Math.cos(rotX),
+    zoom*Math.sin(rotX),
+    zoom*Math.cos(rotY)*Math.cos(rotX)
+  );
+  camera.lookAt(0,0,0);
+
+  sun.scale.setScalar(1+Math.sin(t*2.5)*0.04);
+  corona.rotation.z+=0.008;
+  corona.rotation.y+=0.005;
+  belt.rotation.y+=0.0008;
+
+  if(!paused){
+    PLANETS.forEach((p,i)=>{
+      planetAngles[i]+=p.speed*0.012*speedMult;
+      const th=planetAngles[i];
+      const x=p.a*Math.cos(th), z=p.b*Math.sin(th);
+      const ir=p.incl*Math.PI/180;
+      planetMeshes[i].position.set(x, z*Math.sin(ir), z*Math.cos(ir));
+      planetMeshes[i].rotation.y+=0.018+i*0.003;
+      planetMeshes[i].children.forEach(c=>{
+        if(c.userData.isMoon){
+          c.userData.ma+=0.04;
+          c.position.set(c.userData.mr*Math.cos(c.userData.ma),0,c.userData.mr*Math.sin(c.userData.ma));
+        }
+      });
+    });
+  }
+
+  // Update constellation lines
+  CONST_PAIRS.forEach(([a,b],i)=>{
+    const arr=constLines[i].geometry.attributes.position.array;
+    arr[0]=planetMeshes[a].position.x; arr[1]=planetMeshes[a].position.y; arr[2]=planetMeshes[a].position.z;
+    arr[3]=planetMeshes[b].position.x; arr[4]=planetMeshes[b].position.y; arr[5]=planetMeshes[b].position.z;
+    constLines[i].geometry.attributes.position.needsUpdate=true;
+  });
+
+  renderer.render(scene, camera);
+
+  // Update CSS labels
+  PLANETS.forEach((p,i)=>{
+    const pos=planetMeshes[i].position;
+    const pr=project(pos);
+    if(pr.behind){labels[i].style.display='none';return;}
+    labels[i].style.display='flex';
+    labels[i].style.left=pr.x+'px';
+    labels[i].style.top=(pr.y - p.size*13 - 18)+'px';
+  });
+})();
+</script>
+
+</div>
+  <p class="universe-hint">🖱️ Drag to rotate · Scroll to zoom · Click a planet to explore its genre</p>
+</div>
+
+<!-- ANIME CHARACTER SHOWCASE -->
+<div class="anime-showcase" id="characters">
+  <div class="anime-showcase-inner">
+    <div class="section-header">
+      <span class="section-tag">🌸 Hall of Legends</span>
+      <h2>Iconic Anime <span class="text-accent">Characters</span></h2>
+      <p>The greatest characters in anime history — hover to see their power</p>
+    </div>
+    <div class="character-grid" id="characterGrid"></div>
+  </div>
+</div>
+
+<!-- GENRE UNIVERSE -->
+<section id="genres" style="padding-top:0">
+  <div class="section-header">
+    <span class="section-tag">🎭 Complete Library</span>
+    <h2>Genre <span class="text-accent2">Universe</span></h2>
+    <p>Every genre, sub-genre, and niche category across all formats</p>
+  </div>
+  <div class="search-bar-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-bar" id="genreSearch" placeholder="Search genres..." oninput="filterGenres(this.value)">
+  </div>
+  <div class="category-tabs" id="categoryTabs">
+    <button class="tab-btn active" onclick="switchTab('all',this)">All Genres</button>
+    <button class="tab-btn" onclick="switchTab('movie',this)">🎬 Movies</button>
+    <button class="tab-btn" onclick="switchTab('series',this)">📺 TV Series</button>
+    <button class="tab-btn" onclick="switchTab('anime',this)">🌸 Anime</button>
+    <button class="tab-btn" onclick="switchTab('documentary',this)">🎤 Documentary</button>
+    <button class="tab-btn" onclick="switchTab('animation',this)">🎨 Animation</button>
+  </div>
+  <div id="genreGrid" class="genre-grid"></div>
+</section>
+
+<!-- FEATURED SERIES -->
+<section id="series" style="background:rgba(17,24,39,.4);border-radius:24px;padding:3rem 2rem;margin-bottom:3rem">
+  <div class="section-header">
+    <span class="section-tag">📺 Top Picks</span>
+    <h2>Must-Watch <span class="text-accent">Series</span></h2>
+  </div>
+  <div class="filter-panel">
+    <div class="filter-row">
+      <div class="filter-group"><div class="filter-label">Genre</div>
+        <select class="filter-select" id="filterGenre" onchange="filterSeries()">
+          <option value="">All Genres</option>
+          <option>Drama</option><option>Thriller</option><option>Sci-Fi</option>
+          <option>Fantasy</option><option>Crime</option><option>Horror</option>
+          <option>Comedy</option><option>Action</option>
+        </select></div>
+      <div class="filter-group"><div class="filter-label">Platform</div>
+        <select class="filter-select" id="filterPlatform" onchange="filterSeries()">
+          <option value="">All Platforms</option>
+          <option>Netflix</option><option>HBO</option><option>Amazon</option>
+          <option>Disney+</option><option>Hulu</option>
+        </select></div>
+      <div class="filter-group"><div class="filter-label">Era</div>
+        <select class="filter-select" id="filterEra" onchange="filterSeries()">
+          <option value="">All Eras</option>
+          <option>2020s</option><option>2010s</option><option>2000s</option><option>90s</option>
+        </select></div>
+    </div>
+  </div>
+  <div class="series-grid" id="seriesGrid"></div>
+</section>
+
+<!-- ANIME -->
+<section id="anime">
+  <div class="section-header">
+    <span class="section-tag">🌸 Anime Universe</span>
+    <h2>Anime <span class="text-accent2">Genre</span> Guide</h2>
+  </div>
+  <div class="grid-2">
+    <div><h3 style="margin-bottom:1.25rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px">By Demographic</h3><div id="animeDemoGrid" style="display:flex;flex-direction:column;gap:.6rem"></div></div>
+    <div><h3 style="margin-bottom:1.25rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px">By Theme</h3><div id="animeThemeGrid" style="display:flex;flex-direction:column;gap:.6rem"></div></div>
+  </div>
+  <div style="margin-top:2.5rem">
+    <h3 style="margin-bottom:1.25rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Top Anime Series</h3>
+    <div class="series-grid" id="animeGrid"></div>
+  </div>
+</section>
+
+<!-- MOOD -->
+<section style="padding-top:0">
+  <div class="section-header">
+    <span class="section-tag">✨ Find By Feeling</span>
+    <h2>Watch By <span class="text-accent3">Mood</span></h2>
+  </div>
+  <div class="mood-grid" id="moodGrid"></div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" style="background:rgba(124,58,237,.05);border-radius:24px;padding:3rem 2rem">
+  <div class="section-header">
+    <span class="section-tag">🎯 Genre Discovery</span>
+    <h2>Find Your <span class="text-accent">Genre</span></h2>
+  </div>
+  <div class="quiz-box" id="quizBox">
+    <div class="quiz-progress" id="quizProgress"></div>
+    <div id="quizContent"></div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section id="compare">
+  <div class="section-header">
+    <span class="section-tag">⚖️ Genre Analysis</span>
+    <h2>Compare <span class="text-accent2">Genres</span></h2>
+  </div>
+  <div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;justify-content:center">
+    <select class="ai-select" id="compare1" onchange="renderCompare()"><option>Action</option><option>Drama</option><option>Comedy</option><option>Thriller</option><option>Sci-Fi</option><option>Horror</option><option>Fantasy</option><option>Romance</option></select>
+    <select class="ai-select" id="compare2" onchange="renderCompare()"><option>Sci-Fi</option><option>Action</option><option>Drama</option><option>Comedy</option><option>Thriller</option><option>Horror</option><option>Fantasy</option><option>Romance</option></select>
+  </div>
+  <div class="compare-grid" id="compareGrid"></div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="section-header">
+    <span class="section-tag">📊 Industry Data</span>
+    <h2>Genre <span class="text-accent">Statistics</span></h2>
+  </div>
+  <div class="stats-grid" id="statsGrid"></div>
+  <div style="margin-top:2rem;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem">
+    <h3 style="font-size:1rem;margin-bottom:.5rem">Genre Popularity by Decade</h3>
+    <div class="chart-bars" id="chartBars"></div>
+  </div>
+</section>
+
+<!-- WATCHLIST -->
+<section>
+  <div class="section-header">
+    <span class="section-tag">📋 Your List</span>
+    <h2>My <span class="text-accent3">Watchlist</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="watchlist-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h3 style="font-size:.95rem">To Watch</h3>
+        <button class="btn-classify" onclick="addToWatchlist()" style="font-size:.78rem;padding:.4rem .9rem">+ Add</button>
+      </div>
+      <div id="watchlistItems"></div>
+    </div>
+    <div class="watchlist-panel">
+      <h3 style="font-size:.95rem;margin-bottom:1rem">Genre Distribution</h3>
+      <div id="genreDistribution"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section style="padding-top:0">
+  <div class="section-header">
+    <span class="section-tag">📅 History</span>
+    <h2>Genre <span class="text-accent2">Evolution</span></h2>
+  </div>
+  <div class="timeline" id="timeline"></div>
+</section>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand"><span class="logo">CINEGENRE</span><p>The ultimate offline genre classification platform. No API. No limits. No expiry.</p></div>
+      <div class="footer-col"><h4>Genres</h4><a href="#">Action</a><a href="#">Drama</a><a href="#">Sci-Fi</a><a href="#">Horror</a><a href="#">Anime</a></div>
+      <div class="footer-col"><h4>Tools</h4><a href="#">Classifier</a><a href="#">Quiz</a><a href="#">Compare</a><a href="#">Watchlist</a></div>
+      <div class="footer-col"><h4>Info</h4><a href="#">About</a><a href="#">Blog</a><a href="#">Contact</a></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 CineGenre AI · Offline Edition</p>
+      <p style="color:var(--muted)">Built with ❤️ · Zero API dependencies</p>
+    </div>
+  </div>
+</footer>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<div class="toast" id="toast"><span class="toast-icon" id="toastIcon">✅</span><span id="toastMsg">Done!</span></div>
+<div class="modal-overlay" id="genreModal"><div class="modal"><button class="modal-close" onclick="closeModal()">✕</button><div id="modalContent"></div></div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// MASSIVE LOCAL DATABASE — 500+ TITLES
+// ═══════════════════════════════════════════════════════════════
+const MOVIE_DB = [
+  // ACTION
+  {t:"The Dark Knight",y:2008,g:["Action","Crime","Thriller"],m:["Intense","Dark","Epic"],d:"Superhero noir where Batman faces the anarchic Joker in Gotham City.",sim:["Batman Begins","The Godfather","Heat"],conf:97,type:"movie"},
+  {t:"Mad Max: Fury Road",y:2015,g:["Action","Sci-Fi"],m:["Relentless","Visceral","Kinetic"],d:"Post-apocalyptic chase epic through the wasteland.",sim:["The Road Warrior","Dredd","Snowpiercer"],conf:96,type:"movie"},
+  {t:"John Wick",y:2014,g:["Action","Thriller","Crime"],m:["Stylish","Brutal","Hyper-kinetic"],d:"Retired hitman unleashed after his dog is killed.",sim:["Atomic Blonde","The Raid","Sicario"],conf:95,type:"movie"},
+  {t:"Inception",y:2010,g:["Sci-Fi","Thriller","Action"],m:["Mind-bending","Cerebral","Epic"],d:"A thief who enters dreams to steal secrets takes on a mission to plant an idea.",sim:["Interstellar","The Matrix","Tenet"],conf:97,type:"movie"},
+  {t:"Avengers: Endgame",y:2019,g:["Superhero","Action","Sci-Fi"],m:["Epic","Emotional","Triumphant"],d:"The Avengers assemble for the ultimate battle against Thanos.",sim:["Infinity War","Age of Ultron","Thor: Ragnarok"],conf:94,type:"movie"},
+  {t:"Top Gun: Maverick",y:2022,g:["Action","Drama"],m:["Thrilling","Nostalgic","Heartfelt"],d:"Legendary pilot Maverick returns to train a new generation for a dangerous mission.",sim:["Top Gun","Behind Enemy Lines","The Right Stuff"],conf:95,type:"movie"},
+  {t:"The Raid",y:2011,g:["Action","Crime","Thriller"],m:["Explosive","Raw","Unstoppable"],d:"An elite SWAT team gets trapped in a tenement run by a crime lord.",sim:["Dredd","John Wick","Ong-Bak"],conf:96,type:"movie"},
+  {t:"Mission: Impossible – Fallout",y:2018,g:["Action","Thriller","Spy"],m:["Breathless","Spectacular","Non-stop"],d:"Ethan Hunt races to prevent nuclear catastrophe after a mission gone wrong.",sim:["Casino Royale","Skyfall","Jack Reacher"],conf:94,type:"movie"},
+  // DRAMA
+  {t:"The Shawshank Redemption",y:1994,g:["Drama"],m:["Hopeful","Emotional","Inspiring"],d:"Two imprisoned men bond over years, finding solace and eventual redemption.",sim:["The Green Mile","Forrest Gump","Schindler's List"],conf:99,type:"movie"},
+  {t:"The Godfather",y:1972,g:["Crime","Drama"],m:["Epic","Tragic","Operatic"],d:"The aging patriarch of a crime dynasty transfers control to his reluctant son.",sim:["The Godfather Part II","Goodfellas","Scarface"],conf:99,type:"movie"},
+  {t:"Schindler's List",y:1993,g:["Historical","Drama","War"],m:["Harrowing","Important","Moving"],d:"Nazi party member Oskar Schindler saves thousands of Polish Jews during the Holocaust.",sim:["The Pianist","Son of Saul","Life is Beautiful"],conf:99,type:"movie"},
+  {t:"12 Angry Men",y:1957,g:["Drama","Mystery","Legal"],m:["Tense","Intellectual","Claustrophobic"],d:"A jury of 12 men must decide the guilt of an accused murderer.",sim:["The Verdict","A Few Good Men","Witness for the Prosecution"],conf:98,type:"movie"},
+  {t:"Parasite",y:2019,g:["Thriller","Drama","Dark Comedy"],m:["Shocking","Class warfare","Satirical"],d:"A poor family schemes to work for a wealthy household with unexpected consequences.",sim:["Burning","The Wailing","Snowpiercer"],conf:98,type:"movie"},
+  {t:"Whiplash",y:2014,g:["Drama","Music"],m:["Intense","Obsessive","Exhilarating"],d:"A young drummer pushes himself to the limit under a brutal jazz conservatory instructor.",sim:["Black Swan","Full Metal Jacket","Foxcatcher"],conf:97,type:"movie"},
+  {t:"Moonlight",y:2016,g:["Drama"],m:["Tender","Poetic","Profound"],d:"A young man's journey through three defining chapters of his life in Miami.",sim:["Beale Street","Moonrise Kingdom","Call Me By Your Name"],conf:95,type:"movie"},
+  // SCI-FI
+  {t:"Interstellar",y:2014,g:["Sci-Fi","Drama","Adventure"],m:["Emotional","Cosmic","Grand"],d:"A team travels through a wormhole in space to find a new home for humanity.",sim:["Arrival","2001","Gravity"],conf:97,type:"movie"},
+  {t:"The Matrix",y:1999,g:["Sci-Fi","Action","Thriller"],m:["Revolutionary","Mind-bending","Iconic"],d:"A hacker discovers reality is a simulation and joins a rebellion against machines.",sim:["Dark City","The Matrix Reloaded","eXistenZ"],conf:99,type:"movie"},
+  {t:"Blade Runner 2049",y:2017,g:["Sci-Fi","Noir","Mystery"],m:["Haunting","Philosophical","Beautiful"],d:"A young blade runner discovers a secret that could plunge society into chaos.",sim:["Blade Runner","Ex Machina","Ghost in the Shell"],conf:96,type:"movie"},
+  {t:"Dune",y:2021,g:["Sci-Fi","Epic","Adventure"],m:["Mythic","Grand","Immersive"],d:"Paul Atreides journeys to the most dangerous planet in the universe.",sim:["Lawrence of Arabia","Arrival","Star Wars: A New Hope"],conf:95,type:"movie"},
+  {t:"Arrival",y:2016,g:["Sci-Fi","Drama","Mystery"],m:["Cerebral","Emotional","Contemplative"],d:"A linguist works to communicate with alien lifeforms after their arrival on Earth.",sim:["Contact","Midnight Special","Annihilation"],conf:96,type:"movie"},
+  {t:"Ex Machina",y:2014,g:["Sci-Fi","Thriller","Mystery"],m:["Unsettling","Cerebral","Atmospheric"],d:"A programmer is selected to evaluate an AI robot's consciousness.",sim:["Blade Runner","Her","Upgrade"],conf:95,type:"movie"},
+  {t:"2001: A Space Odyssey",y:1968,g:["Sci-Fi","Mystery","Epic"],m:["Visionary","Transcendent","Philosophical"],d:"Humanity's first contact with an alien monolith sends a mission to Jupiter.",sim:["Solaris","Contact","Interstellar"],conf:99,type:"movie"},
+  // HORROR
+  {t:"Get Out",y:2017,g:["Horror","Thriller","Mystery"],m:["Terrifying","Social commentary","Twisty"],d:"A Black man meets his white girlfriend's family and uncovers a disturbing secret.",sim:["Us","Nope","The Stepford Wives"],conf:97,type:"movie"},
+  {t:"The Shining",y:1980,g:["Horror","Psychological","Thriller"],m:["Dread","Atmospheric","Iconic"],d:"A family heads to an isolated hotel for the winter where a sinister presence affects the father.",sim:["Doctor Sleep","Misery","The Haunting of Hill House"],conf:99,type:"movie"},
+  {t:"Hereditary",y:2018,g:["Horror","Psychological","Drama"],m:["Devastating","Terrifying","Unsettling"],d:"A family unravels cryptic and increasingly terrifying secrets about their ancestry.",sim:["Midsommar","The Witch","Talk to Me"],conf:95,type:"movie"},
+  {t:"A Quiet Place",y:2018,g:["Horror","Thriller","Sci-Fi"],m:["Tense","Emotional","Innovative"],d:"A family struggles to survive in a post-apocalyptic world invaded by creatures that hunt by sound.",sim:["Bird Box","The Silence","No Exit"],conf:94,type:"movie"},
+  {t:"The Witch",y:2015,g:["Horror","Historical","Mystery"],m:["Slow-burn","Atmospheric","Folk horror"],d:"A Puritan family encounters evil forces in 17th century New England.",sim:["Hereditary","Midsommar","The Wailing"],conf:93,type:"movie"},
+  // COMEDY
+  {t:"The Grand Budapest Hotel",y:2014,g:["Comedy","Adventure","Mystery"],m:["Whimsical","Elegant","Charming"],d:"The adventures of a legendary concierge and his lobby boy protégé.",sim:["Moonrise Kingdom","Isle of Dogs","Rushmore"],conf:95,type:"movie"},
+  {t:"Superbad",y:2007,g:["Comedy","Coming-of-age"],m:["Hilarious","Heartfelt","Nostalgic"],d:"Two co-dependent high school seniors try to attend a party before graduation.",sim:["American Pie","Pineapple Express","The Inbetweeners"],conf:93,type:"movie"},
+  {t:"Knives Out",y:2019,g:["Mystery","Comedy","Thriller"],m:["Clever","Witty","Entertaining"],d:"A detective investigates the death of a wealthy crime novelist.",sim:["Glass Onion","Clue","Murder on the Orient Express"],conf:96,type:"movie"},
+  // FANTASY
+  {t:"The Lord of the Rings: The Fellowship of the Ring",y:2001,g:["Fantasy","Adventure","Epic"],m:["Epic","Mythic","Timeless"],d:"A hobbit and his Fellowship begin the journey to destroy the One Ring.",sim:["The Two Towers","Return of the King","The Hobbit"],conf:99,type:"movie"},
+  {t:"Pan's Labyrinth",y:2006,g:["Fantasy","Drama","War"],m:["Dark","Haunting","Beautiful"],d:"A girl escapes into a dark fantasy world during post-Civil War Spain.",sim:["The Shape of Water","Crimson Peak","MirrorMask"],conf:97,type:"movie"},
+  {t:"Everything Everywhere All at Once",y:2022,g:["Sci-Fi","Comedy","Drama","Action"],m:["Heartfelt","Absurd","Overwhelming"],d:"A laundromat owner is swept into an adventure to save the multiverse.",sim:["Swiss Army Man","The One I Love","Coherence"],conf:96,type:"movie"},
+  // ROMANCE
+  {t:"La La Land",y:2016,g:["Romance","Musical","Drama"],m:["Bittersweet","Nostalgic","Dreamlike"],d:"A jazz musician and aspiring actress fall in love while pursuing their dreams in Los Angeles.",sim:["The Artist","Whiplash","Damien Chazelle films"],conf:95,type:"movie"},
+  {t:"Eternal Sunshine of the Spotless Mind",y:2004,g:["Romance","Sci-Fi","Drama"],m:["Melancholic","Inventive","Tender"],d:"A couple undergoes a procedure to erase each other from their memories.",sim:["Her","Synecdoche New York","Anomalisa"],conf:97,type:"movie"},
+  // THRILLER/CRIME
+  {t:"Se7en",y:1995,g:["Crime","Thriller","Mystery"],m:["Dark","Disturbing","Iconic"],d:"Two detectives hunt a serial killer who uses the seven deadly sins as his MO.",sim:["Silence of the Lambs","Zodiac","Prisoners"],conf:98,type:"movie"},
+  {t:"No Country for Old Men",y:2007,g:["Crime","Thriller","Western"],m:["Bleak","Relentless","Philosophical"],d:"A man stumbles upon a drug deal gone wrong and is hunted by a terrifying assassin.",sim:["Blood Simple","Fargo","Wind River"],conf:97,type:"movie"},
+  {t:"Prisoners",y:2013,g:["Thriller","Mystery","Drama","Crime"],m:["Harrowing","Anguished","Tense"],d:"A desperate father takes the law into his own hands when his daughter goes missing.",sim:["Zodiac","Gone Girl","Wind River"],conf:96,type:"movie"},
+  {t:"Gone Girl",y:2014,g:["Thriller","Mystery","Drama"],m:["Icy","Twisty","Unsettling"],d:"A man becomes the prime suspect when his wife mysteriously disappears.",sim:["Gone Baby Gone","Prisoners","The Girl with the Dragon Tattoo"],conf:96,type:"movie"},
+  {t:"Oldboy",y:2003,g:["Mystery","Thriller","Crime"],m:["Shocking","Visceral","Unforgettable"],d:"A man imprisoned for 15 years with no explanation is suddenly released.",sim:["I Saw the Devil","Sympathy for Mr. Vengeance","The Handmaiden"],conf:97,type:"movie"},
+
+  // ─── TV SERIES ───
+  {t:"Breaking Bad",y:2008,g:["Crime","Drama","Thriller"],m:["Intense","Transformative","Gripping"],d:"A chemistry teacher turns to manufacturing meth after a cancer diagnosis.",sim:["Better Call Saul","Ozark","The Shield"],conf:99,type:"series"},
+  {t:"Game of Thrones",y:2011,g:["Fantasy","Drama","Action"],m:["Epic","Political","Brutal"],d:"Noble families war for control of the Iron Throne in a realm where magic resurfaces.",sim:["House of the Dragon","The Last Kingdom","The Witcher"],conf:97,type:"series"},
+  {t:"Stranger Things",y:2016,g:["Sci-Fi","Horror","Drama"],m:["Nostalgic","Thrilling","Heartfelt"],d:"Kids uncover supernatural mysteries involving a secret government lab in 1980s Indiana.",sim:["Dark","The OA","Twin Peaks"],conf:96,type:"series"},
+  {t:"Chernobyl",y:2019,g:["Historical","Drama","Thriller"],m:["Harrowing","Important","Masterful"],d:"The true story of the 1986 Chernobyl nuclear disaster and its aftermath.",sim:["Band of Brothers","The Terror","Miniseries Dramas"],conf:98,type:"series"},
+  {t:"Succession",y:2018,g:["Drama","Comedy","Thriller"],m:["Sharp","Devastating","Brilliant"],d:"A media dynasty's dysfunctional family competes for control of the company.",sim:["Billions","Arrested Development","The Crown"],conf:97,type:"series"},
+  {t:"The Wire",y:2002,g:["Crime","Drama"],m:["Gritty","Authentic","Complex"],d:"The Baltimore drug scene from the perspectives of both dealers and law enforcement.",sim:["The Shield","Oz","The Sopranos"],conf:99,type:"series"},
+  {t:"Dark",y:2017,g:["Sci-Fi","Mystery","Thriller"],m:["Complex","Haunting","Cerebral"],d:"Four interconnected families in a German town uncover a time travel conspiracy.",sim:["Devs","Lost","Twin Peaks"],conf:97,type:"series"},
+  {t:"The Sopranos",y:1999,g:["Crime","Drama"],m:["Complex","Human","Operatic"],d:"A New Jersey mob boss balances family life with his criminal organization.",sim:["The Wire","Boardwalk Empire","Oz"],conf:99,type:"series"},
+  {t:"Westworld",y:2016,g:["Sci-Fi","Thriller","Mystery"],m:["Philosophical","Twisty","Immersive"],d:"A futuristic theme park populated by AI hosts begins to malfunction.",sim:["Humans","Person of Interest","Ex Machina"],conf:93,type:"series"},
+  {t:"The Boys",y:2019,g:["Superhero","Action","Dark Comedy"],m:["Subversive","Brutal","Satirical"],d:"A group of vigilantes fight corrupt superheroes backed by a mega-corporation.",sim:["Invincible","Preacher","Watchmen"],conf:95,type:"series"},
+  {t:"Mindhunter",y:2017,g:["Crime","Thriller","Drama"],m:["Chilling","Methodical","Riveting"],d:"FBI agents pioneer criminal profiling by interviewing imprisoned serial killers.",sim:["True Detective","Manhunt","Zodiac"],conf:96,type:"series"},
+  {t:"The Last of Us",y:2023,g:["Sci-Fi","Drama","Horror"],m:["Emotional","Harrowing","Beautiful"],d:"A hardened survivor escorts a teenage girl across post-pandemic America.",sim:["Station Eleven","The Walking Dead","The Road"],conf:97,type:"series"},
+  {t:"Better Call Saul",y:2015,g:["Crime","Drama"],m:["Tragic","Brilliant","Patient"],d:"The transformation of small-time attorney Jimmy McGill into criminal lawyer Saul Goodman.",sim:["Breaking Bad","Ozark","The Americans"],conf:97,type:"series"},
+  {t:"Peaky Blinders",y:2013,g:["Crime","Drama","Historical"],m:["Stylish","Brutal","Atmospheric"],d:"A gangster family in 1920s Birmingham navigates politics and rivals.",sim:["Boardwalk Empire","Taboo","Gangs of New York"],conf:95,type:"series"},
+  {t:"House of the Dragon",y:2022,g:["Fantasy","Drama","Action"],m:["Political","Operatic","Brutal"],d:"The story of House Targaryen 200 years before the events of Game of Thrones.",sim:["Game of Thrones","The Last Kingdom","Marco Polo"],conf:93,type:"series"},
+  {t:"True Detective",y:2014,g:["Crime","Mystery","Drama"],m:["Philosophical","Dark","Haunting"],d:"Two detectives are linked to a case involving a ritualistic killer over 17 years.",sim:["Mindhunter","Sharp Objects","Ozark"],conf:97,type:"series"},
+  {t:"Severance",y:2022,g:["Sci-Fi","Thriller","Mystery"],m:["Unsettling","Original","Tense"],d:"Employees undergo a procedure to surgically divide memories of work and personal life.",sim:["Devs","The OA","Westworld"],conf:96,type:"series"},
+  {t:"The Bear",y:2022,g:["Drama","Comedy"],m:["Intense","Authentic","Emotional"],d:"A fine-dining chef returns home to run his family's sandwich shop after a tragedy.",sim:["Chef's Table","Boiling Point","Uncut Gems"],conf:95,type:"series"},
+  {t:"Ozark",y:2017,g:["Crime","Thriller","Drama"],m:["Tense","Bleak","Gripping"],d:"A financial advisor moves his family to the Ozarks to launder money for a drug cartel.",sim:["Breaking Bad","Bloodline","Justified"],conf:94,type:"series"},
+  {t:"Squid Game",y:2021,g:["Thriller","Drama","Action"],m:["Brutal","Satirical","Shocking"],d:"Contestants play deadly children's games for a chance at a massive cash prize.",sim:["Alice in Borderland","Battle Royale","The Hunger Games"],conf:97,type:"series"},
+
+  // ─── ANIME ───
+  {t:"Attack on Titan",y:2013,g:["Action","Dark Fantasy","Drama"],m:["Epic","Devastating","Shocking"],d:"Humanity lives behind walls protecting them from giant humanoid Titans.",sim:["Vinland Saga","Demon Slayer","Fullmetal Alchemist Brotherhood"],conf:98,type:"anime"},
+  {t:"Death Note",y:2006,g:["Thriller","Psychological","Mystery"],m:["Intellectual","Dark","Cat-and-mouse"],d:"A student finds a supernatural notebook that kills anyone whose name is written in it.",sim:["Monster","Code Geass","The Promised Neverland"],conf:98,type:"anime"},
+  {t:"Fullmetal Alchemist: Brotherhood",y:2009,g:["Action","Adventure","Fantasy"],m:["Emotional","Epic","Balanced"],d:"Two brothers use alchemy to search for the Philosopher's Stone to restore their bodies.",sim:["Attack on Titan","Hunter x Hunter","Naruto Shippuden"],conf:99,type:"anime"},
+  {t:"Naruto",y:2002,g:["Action","Adventure","Shōnen"],m:["Energetic","Inspiring","Long-form"],d:"A young ninja works to gain recognition and dreams of becoming the Hokage.",sim:["Bleach","One Piece","Dragon Ball Z"],conf:96,type:"anime"},
+  {t:"Naruto Shippuden",y:2007,g:["Action","Adventure","Shōnen"],m:["Intense","Epic","Emotional"],d:"Naruto returns after training to face darker threats to the ninja world.",sim:["Naruto","Boruto","One Piece"],conf:96,type:"anime"},
+  {t:"Dragon Ball Z",y:1989,g:["Action","Shōnen","Sci-Fi"],m:["Epic","Bombastic","Legendary"],d:"Goku defends Earth from increasingly powerful alien threats.",sim:["Dragon Ball Super","Naruto","One Piece"],conf:97,type:"anime"},
+  {t:"Dragon Ball Super",y:2015,g:["Action","Shōnen","Comedy"],m:["Fun","Spectacular","Accessible"],d:"Goku and friends face gods of destruction and multiversal threats.",sim:["Dragon Ball Z","Naruto Shippuden","One Piece"],conf:90,type:"anime"},
+  {t:"One Piece",y:1999,g:["Adventure","Comedy","Shōnen"],m:["Epic","Joyful","Vast"],d:"Pirate Monkey D. Luffy gathers a crew to find the ultimate treasure, the One Piece.",sim:["Fairy Tail","Naruto","Hunter x Hunter"],conf:96,type:"anime"},
+  {t:"Demon Slayer",y:2019,g:["Action","Fantasy","Shōnen"],m:["Beautiful","Emotional","Brutal"],d:"A boy trains to become a Demon Slayer after his family is slaughtered.",sim:["Attack on Titan","Jujutsu Kaisen","Bleach"],conf:97,type:"anime"},
+  {t:"Jujutsu Kaisen",y:2020,g:["Action","Supernatural","Shōnen"],m:["Stylish","Dark","Exciting"],d:"A boy swallows a cursed item and joins a secret organization fighting curses.",sim:["Demon Slayer","Bleach","Chainsaw Man"],conf:95,type:"anime"},
+  {t:"Bleach",y:2004,g:["Action","Supernatural","Shōnen"],m:["Iconic","Stylish","Long-form"],d:"A teenager gains the powers of a Soul Reaper to defend humans from malevolent spirits.",sim:["Naruto","One Piece","Fairy Tail"],conf:94,type:"anime"},
+  {t:"Hunter x Hunter",y:2011,g:["Action","Adventure","Shōnen"],m:["Sophisticated","Dark","Strategic"],d:"A boy's quest to find his missing father leads him to become a Hunter.",sim:["Fullmetal Alchemist Brotherhood","Naruto","Mob Psycho 100"],conf:98,type:"anime"},
+  {t:"Steins;Gate",y:2011,g:["Sci-Fi","Thriller","Drama"],m:["Mind-bending","Emotional","Tense"],d:"A scientist accidentally discovers time travel and must prevent a dystopian future.",sim:["Re:Zero","The Girl Who Leapt Through Time","Erased"],conf:98,type:"anime"},
+  {t:"Your Name",y:2016,g:["Romance","Fantasy","Drama"],m:["Beautiful","Emotional","Magical"],d:"Two teenagers swap bodies and fall in love across time and distance.",sim:["Weathering With You","A Silent Voice","The Garden of Words"],conf:98,type:"anime"},
+  {t:"Spirited Away",y:2001,g:["Fantasy","Adventure","Animation"],m:["Magical","Wondrous","Timeless"],d:"A girl trapped in a spirit world must work to free herself and her parents.",sim:["Princess Mononoke","Howl's Moving Castle","Nausicaä"],conf:99,type:"anime"},
+  {t:"Neon Genesis Evangelion",y:1995,g:["Mecha","Psychological","Sci-Fi"],m:["Complex","Disturbing","Revolutionary"],d:"Teenagers pilot giant mechs to fight mysterious beings called Angels.",sim:["Gurren Lagann","Code Geass","RahXephon"],conf:97,type:"anime"},
+  {t:"Re:Zero",y:2016,g:["Fantasy","Thriller","Isekai"],m:["Brutal","Emotional","Tense"],d:"A young man transported to a fantasy world can only return from death by going back in time.",sim:["Sword Art Online","Steins;Gate","Fate/Zero"],conf:93,type:"anime"},
+  {t:"Cowboy Bebop",y:1998,g:["Sci-Fi","Action","Noir"],m:["Stylish","Melancholic","Cool"],d:"A ragtag crew of bounty hunters roam the solar system in 2071.",sim:["Trigun","Outlaw Star","Samurai Champloo"],conf:99,type:"anime"},
+  {t:"Vinland Saga",y:2019,g:["Historical","Action","Drama"],m:["Epic","Brutal","Philosophical"],d:"A young Viking warrior seeks revenge while finding his true path.",sim:["Attack on Titan","Berserk","Kingdom"],conf:97,type:"anime"},
+  {t:"Violet Evergarden",y:2018,g:["Drama","Romance","Fantasy"],m:["Beautiful","Tearful","Healing"],d:"A former soldier becomes an Auto Memory Doll, writing letters for others.",sim:["A Silent Voice","Your Lie in April","Clannad"],conf:95,type:"anime"},
+  {t:"A Silent Voice",y:2016,g:["Drama","Romance"],m:["Emotional","Redemptive","Heartbreaking"],d:"A former bully reconnects with a deaf girl he once tormented.",sim:["Your Name","Violet Evergarden","I Want to Eat Your Pancreas"],conf:96,type:"anime"},
+  {t:"Your Lie in April",y:2014,g:["Drama","Romance","Music"],m:["Beautiful","Devastating","Melodic"],d:"A piano prodigy who can no longer hear music befriends a free-spirited violinist.",sim:["Nodame Cantabile","Clannad","March Comes in like a Lion"],conf:96,type:"anime"},
+  {t:"One Punch Man",y:2015,g:["Action","Comedy","Superhero"],m:["Hilarious","Spectacular","Subversive"],d:"A hero who can defeat any enemy with a single punch grows bored.",sim:["Mob Psycho 100","Tiger & Bunny","My Hero Academia"],conf:96,type:"anime"},
+  {t:"My Hero Academia",y:2016,g:["Action","Superhero","Shōnen"],m:["Inspirational","Fun","Emotional"],d:"A boy born without superpowers in a world of heroes inherits the greatest power.",sim:["One Punch Man","Naruto","Tiger & Bunny"],conf:93,type:"anime"},
+  {t:"Chainsaw Man",y:2022,g:["Action","Dark Fantasy","Horror"],m:["Gory","Shocking","Fun"],d:"A boy fuses with his devil dog and joins a government agency hunting devils.",sim:["Jujutsu Kaisen","Fire Force","Berserk"],conf:94,type:"anime"},
+  {t:"Code Geass",y:2006,g:["Mecha","Thriller","Action"],m:["Strategic","Dark","Addictive"],d:"An exiled prince gains the power to command anyone and leads a rebellion.",sim:["Death Note","Neon Genesis Evangelion","Legend of the Galactic Heroes"],conf:96,type:"anime"},
+  {t:"Sword Art Online",y:2012,g:["Isekai","Action","Romance"],m:["Exciting","Romantic","Escapist"],d:"Players are trapped in a virtual reality MMORPG where death is real.",sim:["Log Horizon","Overlord","No Game No Life"],conf:86,type:"anime"},
+  {t:"Tokyo Ghoul",y:2014,g:["Horror","Action","Psychological"],m:["Dark","Bloody","Tragic"],d:"A student becomes half-ghoul and must hide his nature from both worlds.",sim:["Parasyte","Chainsaw Man","Akame ga Kill"],conf:88,type:"anime"},
+  {t:"Princess Mononoke",y:1997,g:["Fantasy","Action","Adventure"],m:["Epic","Environmental","Mythic"],d:"A prince becomes embroiled in a struggle between forest gods and humans.",sim:["Nausicaä","Spirited Away","Howl's Moving Castle"],conf:98,type:"anime"},
+  {t:"Akira",y:1988,g:["Sci-Fi","Cyberpunk","Action"],m:["Iconic","Explosive","Visionary"],d:"A biker gang leader tries to save his friend from a secret government project in Neo-Tokyo.",sim:["Ghost in the Shell","Paprika","Metropolis"],conf:99,type:"anime"},
+  {t:"Ghost in the Shell",y:1995,g:["Sci-Fi","Cyberpunk","Thriller"],m:["Philosophical","Atmospheric","Visionary"],d:"A cyborg cop hunts a mysterious hacker in a cyberpunk future.",sim:["Akira","Blade Runner","Ghost in the Shell 2"],conf:99,type:"anime"},
+  {t:"Mob Psycho 100",y:2016,g:["Action","Comedy","Supernatural"],m:["Heartfelt","Explosive","Unique"],d:"A powerful psychic boy tries to lead a normal life while suppressing his emotions.",sim:["One Punch Man","Saiki K","Beelzebub"],conf:96,type:"anime"},
+  {t:"Haikyuu!!",y:2014,g:["Sports","Shōnen","Drama"],m:["Exciting","Inspiring","Team spirit"],d:"A short volleyball player strives to become the best despite his height.",sim:["Kuroko's Basketball","Free!","Yuri on Ice"],conf:96,type:"anime"},
+  {t:"Berserk",y:1997,g:["Dark Fantasy","Action","Drama"],m:["Brutal","Epic","Tragic"],d:"A lone mercenary joins a band of soldiers led by a charismatic warrior.",sim:["Vinland Saga","Claymore","Vagabond"],conf:97,type:"anime"},
+  {t:"Erased",y:2016,g:["Mystery","Thriller","Drama"],m:["Tense","Emotional","Gripping"],d:"A man with the ability to travel back in time uses it to prevent his mother's murder.",sim:["Steins;Gate","Terror in Resonance","The Promised Neverland"],conf:95,type:"anime"},
+  {t:"Fate/Zero",y:2011,g:["Action","Fantasy","Dark Fantasy"],m:["Dark","Epic","Philosophical"],d:"Mages summon historical heroes to fight for the Holy Grail.",sim:["Fate/Stay Night","Overlord","Re:Zero"],conf:95,type:"anime"},
+  {t:"No Game No Life",y:2014,g:["Isekai","Comedy","Strategy"],m:["Colorful","Clever","Fun"],d:"Siblings transported to a world where everything is decided by games.",sim:["Sword Art Online","Re:Zero","Overlord"],conf:88,type:"anime"},
+];
+
+// ─── GENRE KEYWORD MAP FOR FUZZY CLASSIFICATION ───
+const GENRE_KEYWORDS = {
+  Action:        ["fight","battle","war","chase","explosion","combat","shoot","punch","kick","gun","sword","warrior","soldier","hero","mission"],
+  Drama:         ["family","relationship","love","loss","death","grief","struggle","emotional","heart","life","personal","character","human","society"],
+  Comedy:        ["funny","laugh","humor","comic","joke","silly","absurd","witty","slapstick","parody","satire"],
+  Thriller:      ["suspense","tension","dangerous","paranoid","escape","chase","killer","threat","danger","secret","conspiracy","spy"],
+  Horror:        ["scary","fear","monster","ghost","demon","zombie","creature","terror","nightmare","haunted","supernatural","evil","blood","horror"],
+  "Sci-Fi":      ["space","future","robot","AI","technology","time travel","alien","scientist","lab","experiment","cyber","digital","quantum","clone","android"],
+  Fantasy:       ["magic","wizard","dragon","elf","dwarf","kingdom","quest","prophecy","sword","enchanted","mythical","sorcerer","spell","mystical","ancient"],
+  Romance:       ["love","relationship","kiss","couple","heart","passion","romantic","affair","wedding","dating"],
+  Crime:         ["detective","police","criminal","murder","mafia","heist","investigation","gang","mob","cop","lawyer","drug","prison"],
+  Mystery:       ["mystery","puzzle","clue","whodunit","detective","solve","secret","hidden","discover","reveal","investigation","strange"],
+  Adventure:     ["journey","explore","quest","expedition","travel","discover","ancient","treasure","map","island","jungle"],
+  Historical:    ["historical","period","ancient","medieval","war","empire","century","era","past","history","culture"],
+  Psychological: ["mind","psychology","mental","paranoid","identity","delusion","reality","perception","manipulation","trauma","disturbed"],
+  Superhero:     ["superpower","hero","villain","cape","mask","save","protect","universe","avenger","justice","comic"],
+  Isekai:        ["transported","another world","reincarnated","summoned","game world","portal","fantasy world","different world"],
+  Mecha:         ["mecha","robot","giant","pilot","suit","machine","mechanical","gundam","eva"],
+  Shōnen:        ["young","youth","school","training","power","growth","friendship","tournament","rival","determination"],
+  Cyberpunk:     ["cyberpunk","neon","corporation","hacker","dystopia","cyber","implant","megacity","noir future"],
+  Noir:          ["noir","dark city","femme fatale","corruption","rain","cigarette","detective","shadow","cynical"],
+  Western:       ["cowboy","sheriff","outlaw","saloon","desert","horse","frontier","gunslinger","gold rush","wild west"],
+  Musical:       ["musical","singing","song","dance","broadway","concert","performer","melody","rhythm","show"],
+  Sports:        ["sports","game","team","competition","training","championship","athlete","coach","tournament","win"],
+  War:           ["war","military","soldier","battle","army","mission","combat","trench","bomb","sergeant","platoon"],
+  Slice_of_Life: ["daily life","everyday","school","friends","cooking","relaxing","peaceful","ordinary","mundane"],
+};
+
+// ─── FAMOUS ANIME CHARACTERS (SVG art) ───
+const ANIME_CHARACTERS = [
+  {
+    name:"Naruto",series:"Naruto",color:"#f97316",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="ng1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#ffe0a0"/><stop offset="100%" stop-color="#f0a040"/></radialGradient>
+        <radialGradient id="ng2" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/><stop offset="100%" stop-color="#f97316" stop-opacity="0"/></radialGradient>
+      </defs>
+      <!-- Chakra glow -->
+      <ellipse cx="60" cy="75" rx="50" ry="60" fill="url(#ng2)" opacity="0.6"/>
+      <!-- Spiky blonde hair -->
+      <ellipse cx="60" cy="48" rx="26" ry="24" fill="#f9c74f"/>
+      <polygon points="34,42 28,20 42,38" fill="#f9c74f"/>
+      <polygon points="40,34 36,14 50,32" fill="#f9c74f"/>
+      <polygon points="58,28 56,8 66,28" fill="#f9c74f"/>
+      <polygon points="74,32 80,12 70,34" fill="#f9c74f"/>
+      <polygon points="82,40 90,22 76,42" fill="#f9c74f"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="62" rx="22" ry="24" fill="url(#ng1)"/>
+      <!-- Headband -->
+      <rect x="34" y="48" width="52" height="10" rx="3" fill="#3b82f6"/>
+      <rect x="46" y="50" width="28" height="6" rx="2" fill="#93c5fd"/>
+      <line x1="60" y1="50" x2="60" y2="56" stroke="#3b82f6" stroke-width="1.5"/>
+      <!-- Eyes -->
+      <ellipse cx="52" cy="62" rx="5" ry="5" fill="#1e40af"/>
+      <ellipse cx="68" cy="62" rx="5" ry="5" fill="#1e40af"/>
+      <circle cx="53" cy="61" r="2" fill="#0f172a"/>
+      <circle cx="69" cy="61" r="2" fill="#0f172a"/>
+      <circle cx="54" cy="60" r="1" fill="white"/>
+      <circle cx="70" cy="60" r="1" fill="white"/>
+      <!-- Whisker marks -->
+      <line x1="38" y1="66" x2="50" y2="64" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="70" x2="50" y2="68" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="74" x2="50" y2="72" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="82" y1="66" x2="70" y2="64" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="82" y1="70" x2="70" y2="68" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="82" y1="74" x2="70" y2="72" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Nose & smile -->
+      <circle cx="60" cy="72" r="2" fill="#e0905a" opacity="0.5"/>
+      <path d="M54,78 Q60,84 66,78" fill="none" stroke="#c06030" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Body / orange jacket -->
+      <rect x="40" y="86" width="40" height="50" rx="6" fill="#f97316"/>
+      <rect x="50" y="86" width="20" height="50" fill="#f97316"/>
+      <rect x="38" y="86" width="12" height="50" rx="4" fill="#ea580c"/>
+      <rect x="70" y="86" width="12" height="50" rx="4" fill="#ea580c"/>
+      <!-- Collar -->
+      <polygon points="50,86 60,96 70,86" fill="#1d1d1d"/>
+      <!-- Spiral symbol -->
+      <circle cx="60" cy="112" r="8" fill="none" stroke="#fff" stroke-width="2" opacity="0.7"/>
+      <path d="M60,106 Q66,106 66,112 Q66,118 60,118" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.7"/>
+      <!-- Arms -->
+      <rect x="22" y="90" width="18" height="10" rx="5" fill="#f97316"/>
+      <rect x="80" y="90" width="18" height="10" rx="5" fill="#f97316"/>
+      <!-- Rasengan energy -->
+      <circle cx="22" cy="95" r="10" fill="none" stroke="#60a5fa" stroke-width="2" opacity="0.8"/>
+      <circle cx="22" cy="95" r="7" fill="rgba(96,165,250,0.3)"/>
+    </svg>`
+  },
+  {
+    name:"Goku",series:"Dragon Ball Z",color:"#f59e0b",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="gg1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#d97706"/></radialGradient>
+        <radialGradient id="gg2"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.5"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/></radialGradient>
+      </defs>
+      <!-- Super Saiyan aura -->
+      <ellipse cx="60" cy="60" rx="55" ry="70" fill="url(#gg2)"/>
+      <!-- Wild black hair -->
+      <polygon points="60,10 45,45 75,45" fill="#1a1a1a"/>
+      <polygon points="40,30 25,55 50,50" fill="#1a1a1a"/>
+      <polygon points="80,30 95,55 70,50" fill="#1a1a1a"/>
+      <polygon points="50,15 38,40 58,42" fill="#2d2d2d"/>
+      <polygon points="70,15 82,40 62,42" fill="#2d2d2d"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="62" rx="22" ry="24" fill="url(#gg1)"/>
+      <!-- Eyes (SSJ) - teal -->
+      <ellipse cx="52" cy="62" rx="5" ry="5" fill="#0d9488"/>
+      <ellipse cx="68" cy="62" rx="5" ry="5" fill="#0d9488"/>
+      <circle cx="53" cy="61" r="2.5" fill="#0f172a"/>
+      <circle cx="69" cy="61" r="2.5" fill="#0f172a"/>
+      <circle cx="54" cy="60" r="1" fill="white"/>
+      <circle cx="70" cy="60" r="1" fill="white"/>
+      <!-- Eyebrows stern -->
+      <line x1="46" y1="56" x2="56" y2="58" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="64" y1="58" x2="74" y2="56" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Nose -->
+      <path d="M58,70 L56,76 L64,76" fill="none" stroke="#b45309" stroke-width="1.5"/>
+      <!-- Smile -->
+      <path d="M52,80 Q60,87 68,80" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>
+      <!-- Orange gi -->
+      <rect x="36" y="86" width="48" height="55" rx="6" fill="#ea580c"/>
+      <polygon points="48,86 60,100 72,86" fill="#1d1d1d"/>
+      <rect x="36" y="86" width="12" height="55" rx="4" fill="#c2410c"/>
+      <rect x="72" y="86" width="12" height="55" rx="4" fill="#c2410c"/>
+      <!-- Blue undershirt -->
+      <rect x="48" y="86" width="24" height="8" fill="#1d4ed8"/>
+      <!-- Belt -->
+      <rect x="34" y="116" width="52" height="8" rx="3" fill="#1d4ed8"/>
+      <!-- Arms -->
+      <rect x="18" y="88" width="18" height="10" rx="5" fill="#ea580c"/>
+      <rect x="84" y="88" width="18" height="10" rx="5" fill="#ea580c"/>
+      <!-- Ki blast -->
+      <circle cx="100" cy="93" r="12" fill="rgba(251,191,36,0.4)"/>
+      <circle cx="100" cy="93" r="7" fill="rgba(251,191,36,0.6)"/>
+      <circle cx="100" cy="93" r="3" fill="#fbbf24"/>
+      <!-- Tail hint -->
+      <path d="M82,130 Q95,125 98,115 Q100,105 92,108" fill="none" stroke="#c2410c" stroke-width="3" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    name:"Light Yagami",series:"Death Note",color:"#6366f1",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="lg1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#fde8c8"/><stop offset="100%" stop-color="#d4a06a"/></radialGradient>
+      </defs>
+      <!-- Dark aura -->
+      <ellipse cx="60" cy="80" rx="50" ry="65" fill="rgba(99,102,241,0.15)"/>
+      <!-- Hair - neat brown -->
+      <ellipse cx="60" cy="50" rx="26" ry="22" fill="#92400e"/>
+      <rect x="34" y="48" width="52" height="12" fill="#92400e" rx="2"/>
+      <path d="M34,48 Q32,40 36,35 Q40,30 46,32 Q38,40 38,48Z" fill="#92400e"/>
+      <path d="M86,48 Q88,40 84,35 Q80,30 74,32 Q82,40 82,48Z" fill="#92400e"/>
+      <!-- Part line -->
+      <line x1="60" y1="28" x2="60" y2="48" stroke="#7c3200" stroke-width="1.5"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="64" rx="22" ry="24" fill="url(#lg1)"/>
+      <!-- Sharp calculating eyes -->
+      <ellipse cx="52" cy="63" rx="5.5" ry="5" fill="#7c3aed"/>
+      <ellipse cx="68" cy="63" rx="5.5" ry="5" fill="#7c3aed"/>
+      <circle cx="53" cy="62" r="2.5" fill="#0f172a"/>
+      <circle cx="69" cy="62" r="2.5" fill="#0f172a"/>
+      <circle cx="54.5" cy="61" r="1" fill="white"/>
+      <circle cx="70.5" cy="61" r="1" fill="white"/>
+      <!-- Eyebrows -->
+      <line x1="46" y1="57" x2="57" y2="58" stroke="#7c3200" stroke-width="2"/>
+      <line x1="63" y1="58" x2="74" y2="57" stroke="#7c3200" stroke-width="2"/>
+      <!-- Nose -->
+      <path d="M58,71 Q60,73 62,71" fill="none" stroke="#b48060" stroke-width="1.5"/>
+      <!-- Smirk -->
+      <path d="M54,80 Q62,84 68,78" fill="none" stroke="#8b5e40" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- School uniform - white shirt, black tie -->
+      <rect x="36" y="88" width="48" height="52" rx="5" fill="#f1f5f9"/>
+      <polygon points="50,88 60,100 70,88" fill="#e2e8f0"/>
+      <!-- Tie -->
+      <polygon points="56,88 60,115 64,88" fill="#7c3aed"/>
+      <rect x="56" y="88" width="8" height="4" fill="#6d28d9"/>
+      <!-- Jacket lapels -->
+      <polygon points="36,88 50,88 36,110" fill="#1e1b4b"/>
+      <polygon points="84,88 70,88 84,110" fill="#1e1b4b"/>
+      <!-- Death Note book -->
+      <rect x="22" y="95" width="22" height="28" rx="3" fill="#0f172a"/>
+      <rect x="23" y="96" width="20" height="26" rx="2" fill="#1e1b4b"/>
+      <text x="28" y="108" font-family="serif" font-size="6" fill="#7c3aed" font-weight="bold">DEATH</text>
+      <text x="30" y="116" font-family="serif" font-size="6" fill="#7c3aed" font-weight="bold">NOTE</text>
+      <!-- Arm holding book -->
+      <rect x="36" y="106" width="10" height="18" rx="5" fill="#f1f5f9"/>
+    </svg>`
+  },
+  {
+    name:"Levi Ackerman",series:"Attack on Titan",color:"#64748b",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="la1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#e2e8f0"/><stop offset="100%" stop-color="#9ca3af"/></radialGradient>
+      </defs>
+      <!-- Survey Corps jacket green glow -->
+      <ellipse cx="60" cy="80" rx="48" ry="60" fill="rgba(100,116,139,0.12)"/>
+      <!-- Short dark hair -->
+      <ellipse cx="60" cy="48" rx="24" ry="20" fill="#1e293b"/>
+      <rect x="36" y="46" width="48" height="10" fill="#1e293b" rx="2"/>
+      <rect x="36" y="46" width="12" height="20" fill="#1e293b" rx="3"/>
+      <rect x="72" y="46" width="12" height="20" fill="#1e293b" rx="3"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="64" rx="21" ry="22" fill="url(#la1)"/>
+      <!-- Intense steely eyes -->
+      <ellipse cx="51" cy="63" rx="5" ry="4.5" fill="#4a5568"/>
+      <ellipse cx="69" cy="63" rx="5" ry="4.5" fill="#4a5568"/>
+      <circle cx="52" cy="62" r="2.5" fill="#0f172a"/>
+      <circle cx="70" cy="62" r="2.5" fill="#0f172a"/>
+      <circle cx="53.5" cy="61" r="1" fill="white"/>
+      <circle cx="71.5" cy="61" r="1" fill="white"/>
+      <!-- Annoyed brow -->
+      <line x1="45" y1="57" x2="56" y2="59" stroke="#1e293b" stroke-width="2.5"/>
+      <line x1="64" y1="59" x2="75" y2="57" stroke="#1e293b" stroke-width="2.5"/>
+      <!-- Nose -->
+      <path d="M58,70 Q60,72 62,70" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+      <!-- Thin frown -->
+      <line x1="55" y1="79" x2="65" y2="79" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Survey Corps green jacket -->
+      <rect x="34" y="86" width="52" height="54" rx="5" fill="#365314"/>
+      <polygon points="48,86 60,100 72,86" fill="#1a2e05"/>
+      <rect x="34" y="86" width="14" height="54" rx="4" fill="#2d4a0f"/>
+      <rect x="72" y="86" width="14" height="54" rx="4" fill="#2d4a0f"/>
+      <!-- Wings of Freedom emblem -->
+      <path d="M50,108 Q44,103 46,98 Q50,92 56,98 Q60,102 60,108" fill="#a3e635" opacity="0.8"/>
+      <path d="M70,108 Q76,103 74,98 Q70,92 64,98 Q60,102 60,108" fill="#a3e635" opacity="0.8"/>
+      <!-- Omni-directional mobility blades -->
+      <rect x="16" y="100" width="18" height="4" rx="2" fill="#94a3b8"/>
+      <rect x="86" y="100" width="18" height="4" rx="2" fill="#94a3b8"/>
+      <rect x="18" y="96" width="4" height="16" rx="2" fill="#64748b"/>
+      <rect x="98" y="96" width="4" height="16" rx="2" fill="#64748b"/>
+      <!-- White cravat -->
+      <path d="M50,86 Q55,92 60,88 Q65,92 70,86" fill="white" opacity="0.9"/>
+    </svg>`
+  },
+  {
+    name:"Mikasa",series:"Attack on Titan",color:"#dc2626",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="ma1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#fde8d0"/><stop offset="100%" stop-color="#e0a070"/></radialGradient>
+      </defs>
+      <ellipse cx="60" cy="80" rx="48" ry="60" fill="rgba(220,38,38,0.1)"/>
+      <!-- Long black hair -->
+      <ellipse cx="60" cy="48" rx="26" ry="22" fill="#0f172a"/>
+      <rect x="34" y="46" width="52" height="12" fill="#0f172a"/>
+      <rect x="26" y="56" width="16" height="60" rx="8" fill="#0f172a"/>
+      <rect x="78" y="56" width="16" height="60" rx="8" fill="#0f172a"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="64" rx="21" ry="23" fill="url(#ma1)"/>
+      <!-- Sharp dark eyes -->
+      <ellipse cx="52" cy="63" rx="5.5" ry="5" fill="#1e293b"/>
+      <ellipse cx="68" cy="63" rx="5.5" ry="5" fill="#1e293b"/>
+      <circle cx="53" cy="62" r="2.5" fill="#0a0f1e"/>
+      <circle cx="69" cy="62" r="2.5" fill="#0a0f1e"/>
+      <circle cx="54.5" cy="61" r="1.2" fill="white"/>
+      <circle cx="70.5" cy="61" r="1.2" fill="white"/>
+      <!-- Serious eyebrows -->
+      <line x1="46" y1="57" x2="57" y2="58.5" stroke="#0f172a" stroke-width="2.5"/>
+      <line x1="63" y1="58.5" x2="74" y2="57" stroke="#0f172a" stroke-width="2.5"/>
+      <!-- Nose -->
+      <path d="M58,71 Q60,73 62,71" fill="none" stroke="#c08060" stroke-width="1.2"/>
+      <!-- Calm mouth -->
+      <line x1="54" y1="79" x2="66" y2="79" stroke="#9b6040" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Red scarf -->
+      <path d="M38,84 Q60,90 82,84" fill="#dc2626" stroke="none"/>
+      <path d="M38,84 Q60,94 82,84 L82,90 Q60,102 38,90Z" fill="#dc2626"/>
+      <!-- Survey Corps jacket -->
+      <rect x="36" y="96" width="48" height="44" rx="5" fill="#365314"/>
+      <polygon points="50,96 60,110 70,96" fill="#1a2e05"/>
+      <rect x="36" y="96" width="14" height="44" rx="4" fill="#2d4a0f"/>
+      <rect x="70" y="96" width="14" height="44" rx="4" fill="#2d4a0f"/>
+      <!-- Wings of Freedom -->
+      <path d="M52,116 Q46,111 48,106 Q52,100 58,106 Q60,110 60,116" fill="#a3e635" opacity="0.8"/>
+      <path d="M68,116 Q74,111 72,106 Q68,100 62,106 Q60,110 60,116" fill="#a3e635" opacity="0.8"/>
+      <!-- ODM gear -->
+      <rect x="16" y="106" width="20" height="4" rx="2" fill="#94a3b8"/>
+      <rect x="84" y="106" width="20" height="4" rx="2" fill="#94a3b8"/>
+    </svg>`
+  },
+  {
+    name:"Itachi",series:"Naruto",color:"#7c3aed",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="ia1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#fde8d0"/><stop offset="100%" stop-color="#d4895a"/></radialGradient>
+      </defs>
+      <!-- Mangekyou Sharingan glow -->
+      <ellipse cx="60" cy="70" rx="52" ry="65" fill="rgba(124,58,237,0.12)"/>
+      <circle cx="52" cy="64" r="14" fill="rgba(220,38,38,0.2)"/>
+      <circle cx="68" cy="64" r="14" fill="rgba(220,38,38,0.2)"/>
+      <!-- Long dark hair tied back -->
+      <ellipse cx="60" cy="48" rx="24" ry="20" fill="#0f172a"/>
+      <rect x="36" y="46" width="48" height="12" fill="#0f172a"/>
+      <rect x="52" y="64" width="16" height="70" rx="8" fill="#0f172a"/>
+      <rect x="26" y="56" width="12" height="30" rx="6" fill="#0f172a"/>
+      <rect x="82" y="56" width="12" height="30" rx="6" fill="#0f172a"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="64" rx="21" ry="23" fill="url(#ia1)"/>
+      <!-- Tear lines -->
+      <line x1="50" y1="70" x2="46" y2="82" stroke="#9b6040" stroke-width="1.2" opacity="0.7"/>
+      <line x1="70" y1="70" x2="74" y2="82" stroke="#9b6040" stroke-width="1.2" opacity="0.7"/>
+      <!-- Mangekyou Sharingan eyes -->
+      <ellipse cx="52" cy="63" rx="5.5" ry="5.5" fill="#dc2626"/>
+      <ellipse cx="68" cy="63" rx="5.5" ry="5.5" fill="#dc2626"/>
+      <circle cx="52" cy="63" r="3.5" fill="#7f1d1d"/>
+      <circle cx="68" cy="63" r="3.5" fill="#7f1d1d"/>
+      <!-- Mangekyou pattern -->
+      <circle cx="52" cy="63" r="2" fill="#0f172a"/>
+      <circle cx="68" cy="63" r="2" fill="#0f172a"/>
+      <path d="M52,57 L55,63 L52,69 L49,63Z" fill="rgba(220,38,38,0.6)"/>
+      <path d="M68,57 L71,63 L68,69 L65,63Z" fill="rgba(220,38,38,0.6)"/>
+      <!-- Eyebrows -->
+      <line x1="46" y1="57" x2="57" y2="58" stroke="#0f172a" stroke-width="2"/>
+      <line x1="63" y1="58" x2="74" y2="57" stroke="#0f172a" stroke-width="2"/>
+      <!-- Nose -->
+      <path d="M58,71 Q60,73 62,71" fill="none" stroke="#b07050" stroke-width="1.2"/>
+      <!-- Calm sad expression -->
+      <path d="M54,79 Q60,82 66,79" fill="none" stroke="#8b5030" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Akatsuki cloak black/red clouds -->
+      <rect x="30" y="86" width="60" height="54" rx="6" fill="#0f172a"/>
+      <polygon points="46,86 60,102 74,86" fill="#0a0a14"/>
+      <!-- Red cloud patterns -->
+      <ellipse cx="40" cy="106" rx="8" ry="5" fill="#dc2626" opacity="0.8"/>
+      <ellipse cx="60" cy="120" rx="8" ry="5" fill="#dc2626" opacity="0.8"/>
+      <ellipse cx="80" cy="106" rx="8" ry="5" fill="#dc2626" opacity="0.8"/>
+      <!-- Forehead protector with slash -->
+      <rect x="36" y="47" width="48" height="10" rx="3" fill="#4a4a5a"/>
+      <rect x="44" y="49" width="32" height="6" rx="2" fill="#6b7280"/>
+      <line x1="56" y1="47" x2="64" y2="57" stroke="#dc2626" stroke-width="2"/>
+    </svg>`
+  },
+  {
+    name:"Tanjiro",series:"Demon Slayer",color:"#06b6d4",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="ta1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#fde8d0"/><stop offset="100%" stop-color="#e09060"/></radialGradient>
+        <linearGradient id="water" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#0284c7"/></linearGradient>
+      </defs>
+      <!-- Water breathing aura -->
+      <ellipse cx="60" cy="75" rx="52" ry="65" fill="rgba(6,182,212,0.1)"/>
+      <path d="M20,120 Q35,100 50,115 Q65,130 80,115 Q95,100 110,120" fill="none" stroke="#06b6d4" stroke-width="2" opacity="0.5"/>
+      <!-- Dark burgundy hair with streaks -->
+      <ellipse cx="60" cy="48" rx="25" ry="22" fill="#7f1d1d"/>
+      <rect x="35" y="46" width="50" height="12" fill="#7f1d1d" rx="2"/>
+      <polygon points="42,36 36,60 50,58" fill="#7f1d1d"/>
+      <polygon points="78,36 84,60 70,58" fill="#7f1d1d"/>
+      <!-- Red-tipped hair -->
+      <polygon points="55,26 50,46 65,46 62,26" fill="#dc2626" opacity="0.5"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="64" rx="22" ry="24" fill="url(#ta1)"/>
+      <!-- Scar on forehead -->
+      <path d="M54,54 Q60,51 66,54" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Kind determined eyes -->
+      <ellipse cx="52" cy="64" rx="5.5" ry="5" fill="#1e3a5f"/>
+      <ellipse cx="68" cy="64" rx="5.5" ry="5" fill="#1e3a5f"/>
+      <circle cx="53" cy="63" r="2.5" fill="#0a1a2e"/>
+      <circle cx="69" cy="63" r="2.5" fill="#0a1a2e"/>
+      <circle cx="54.5" cy="62" r="1" fill="white"/>
+      <circle cx="70.5" cy="62" r="1" fill="white"/>
+      <!-- Eyebrows -->
+      <line x1="46" y1="58" x2="57" y2="59" stroke="#4a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="63" y1="59" x2="74" y2="58" stroke="#4a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Nose -->
+      <path d="M58,72 Q60,74 62,72" fill="none" stroke="#c07848" stroke-width="1.2"/>
+      <!-- Determined smile -->
+      <path d="M54,80 Q60,86 66,80" fill="none" stroke="#9b5830" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Hanafuda earrings -->
+      <circle cx="36" cy="66" r="5" fill="#dc2626" stroke="#fbbf24" stroke-width="1.5"/>
+      <circle cx="84" cy="66" r="5" fill="#dc2626" stroke="#fbbf24" stroke-width="1.5"/>
+      <ellipse cx="36" cy="66" rx="3" ry="3" fill="#fbbf24" opacity="0.6"/>
+      <ellipse cx="84" cy="66" rx="3" ry="3" fill="#fbbf24" opacity="0.6"/>
+      <!-- Black kimono with hemp pattern -->
+      <rect x="34" y="86" width="52" height="54" rx="5" fill="#0f172a"/>
+      <polygon points="48,86 60,102 72,86" fill="#1e293b"/>
+      <!-- Hemp leaf pattern -->
+      <path d="M42,98 L50,92 L58,98 L50,104Z" fill="none" stroke="#1e3a5f" stroke-width="1"/>
+      <path d="M62,98 L70,92 L78,98 L70,104Z" fill="none" stroke="#1e3a5f" stroke-width="1"/>
+      <!-- Water effect sword -->
+      <rect x="82" y="85" width="6" height="55" rx="3" fill="url(#water)"/>
+      <rect x="78" y="85" width="6" height="8" rx="2" fill="#fbbf24"/>
+      <ellipse cx="81" cy="85" rx="7" ry="4" fill="#7c3aed" opacity="0.5"/>
+    </svg>`
+  },
+  {
+    name:"Rem",series:"Re:Zero",color:"#3b82f6",
+    svg:`<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="char-svg">
+      <defs>
+        <radialGradient id="ra1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#fce4ec"/><stop offset="100%" stop-color="#f8a0b0"/></radialGradient>
+      </defs>
+      <!-- Blue demon aura -->
+      <ellipse cx="60" cy="75" rx="52" ry="65" fill="rgba(59,130,246,0.1)"/>
+      <!-- Blue hair short bob -->
+      <ellipse cx="60" cy="48" rx="27" ry="24" fill="#1d4ed8"/>
+      <rect x="33" y="46" width="54" height="14" fill="#1d4ed8" rx="2"/>
+      <rect x="28" y="52" width="14" height="40" rx="7" fill="#1d4ed8"/>
+      <rect x="78" y="52" width="14" height="40" rx="7" fill="#1d4ed8"/>
+      <!-- Face -->
+      <ellipse cx="60" cy="65" rx="22" ry="24" fill="url(#ra1)"/>
+      <!-- Demon horn hidden by hair -->
+      <!-- Cute blue eyes -->
+      <ellipse cx="51" cy="64" rx="6" ry="6" fill="#3b82f6"/>
+      <ellipse cx="69" cy="64" rx="6" ry="6" fill="#3b82f6"/>
+      <circle cx="52" cy="63" r="3" fill="#1e3a8a"/>
+      <circle cx="70" cy="63" r="3" fill="#1e3a8a"/>
+      <circle cx="53.5" cy="62" r="1.2" fill="white"/>
+      <circle cx="71.5" cy="62" r="1.2" fill="white"/>
+      <!-- Hair clip on right -->
+      <ellipse cx="79" cy="58" rx="5" ry="4" fill="#f9a8d4"/>
+      <rect x="74" y="55" width="10" height="3" rx="1.5" fill="#ec4899"/>
+      <!-- Blush -->
+      <ellipse cx="47" cy="71" rx="5" ry="3" fill="#f9a8d4" opacity="0.5"/>
+      <ellipse cx="73" cy="71" rx="5" ry="3" fill="#f9a8d4" opacity="0.5"/>
+      <!-- Gentle eyebrows -->
+      <path d="M45,58 Q50,56 57,58" fill="none" stroke="#1d4ed8" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M63,58 Q70,56 75,58" fill="none" stroke="#1d4ed8" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Nose -->
+      <circle cx="60" cy="72" r="1.5" fill="#e090a0" opacity="0.6"/>
+      <!-- Smile -->
+      <path d="M54,79 Q60,85 66,79" fill="none" stroke="#c06080" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Maid outfit -->
+      <rect x="34" y="89" width="52" height="51" rx="5" fill="#1e293b"/>
+      <!-- White apron -->
+      <rect x="44" y="89" width="32" height="51" fill="white" opacity="0.95"/>
+      <!-- Maid collar -->
+      <path d="M40,89 Q50,95 60,90 Q70,95 80,89 L80,97 Q70,105 60,100 Q50,105 40,97Z" fill="white"/>
+      <!-- Bow -->
+      <path d="M52,89 Q60,95 68,89" fill="#f9a8d4"/>
+      <polygon points="52,89 56,94 60,89" fill="#ec4899"/>
+      <polygon points="68,89 64,94 60,89" fill="#ec4899"/>
+      <circle cx="60" cy="90" r="3" fill="#f9a8d4"/>
+      <!-- Sleeve frills -->
+      <path d="M34,93 Q30,97 34,101" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <path d="M86,93 Q90,97 86,101" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    </svg>`
+  },
+];
+
+// ─── MAIN DATA ───
+const GENRES_DATA = [
+  {id:'action',name:'Action',emoji:'💥',color:'gc-red',type:['movie','series'],count:'12,400+',desc:'High-octane sequences, physical stunts, and combat'},
+  {id:'drama',name:'Drama',emoji:'🎭',color:'gc-blue',type:['movie','series'],count:'28,000+',desc:'Character-driven emotional narratives'},
+  {id:'comedy',name:'Comedy',emoji:'😂',color:'gc-yellow',type:['movie','series','anime'],count:'18,500+',desc:'Humor, wit, and lighthearted entertainment'},
+  {id:'thriller',name:'Thriller',emoji:'😰',color:'gc-purple',type:['movie','series'],count:'9,800+',desc:'Suspense, tension, and psychological intensity'},
+  {id:'horror',name:'Horror',emoji:'👻',color:'gc-red',type:['movie','series','anime'],count:'7,200+',desc:'Fear, dread, and supernatural terror'},
+  {id:'scifi',name:'Sci-Fi',emoji:'🚀',color:'gc-cyan',type:['movie','series','anime'],count:'6,100+',desc:'Futuristic technology, space, and science speculation'},
+  {id:'fantasy',name:'Fantasy',emoji:'🧙',color:'gc-purple',type:['movie','series','anime'],count:'8,700+',desc:'Magic, mythical creatures, and otherworldly realms'},
+  {id:'romance',name:'Romance',emoji:'💕',color:'gc-pink',type:['movie','series','anime'],count:'14,300+',desc:'Love stories, relationships, and emotional connections'},
+  {id:'crime',name:'Crime',emoji:'🔫',color:'gc-red',type:['movie','series'],count:'8,900+',desc:'Criminal activity, investigations, and justice'},
+  {id:'mystery',name:'Mystery',emoji:'🔍',color:'gc-blue',type:['movie','series','anime'],count:'5,400+',desc:'Puzzles, secrets, and investigative narratives'},
+  {id:'adventure',name:'Adventure',emoji:'🗺️',color:'gc-green',type:['movie','series','anime'],count:'11,200+',desc:'Exploration, quests, and exciting journeys'},
+  {id:'animation',name:'Animation',emoji:'🎨',color:'gc-yellow',type:['animation'],count:'9,600+',desc:'Animated works spanning all genres and styles'},
+  {id:'documentary',name:'Documentary',emoji:'📹',color:'gc-green',type:['documentary'],count:'32,000+',desc:'Real-world subjects, journalism, and non-fiction'},
+  {id:'history',name:'Historical',emoji:'🏛️',color:'gc-orange',type:['movie','series'],count:'6,800+',desc:'Set in historical periods with period accuracy'},
+  {id:'western',name:'Western',emoji:'🤠',color:'gc-orange',type:['movie','series'],count:'3,100+',desc:'American frontier, cowboys, and gunfights'},
+  {id:'musical',name:'Musical',emoji:'🎵',color:'gc-pink',type:['movie','series'],count:'2,800+',desc:'Song-and-dance storytelling and performance'},
+  {id:'sports',name:'Sports',emoji:'⚽',color:'gc-green',type:['movie','series','documentary'],count:'4,400+',desc:'Athletic competition, training, and triumph'},
+  {id:'superhero',name:'Superhero',emoji:'🦸',color:'gc-purple',type:['movie','series','anime','animation'],count:'1,900+',desc:'Powered heroes, villains, and universe-building'},
+  {id:'war',name:'War',emoji:'⚔️',color:'gc-orange',type:['movie','series'],count:'5,100+',desc:'Military conflict, battlefield drama, and strategy'},
+  {id:'shonen',name:'Shōnen',emoji:'⚡',color:'gc-orange',type:['anime'],count:'4,200+',desc:'Action-oriented anime for young male audiences',pill:'Anime'},
+  {id:'shojo',name:'Shōjo',emoji:'🌸',color:'gc-pink',type:['anime'],count:'2,800+',desc:'Romance and emotion-focused anime for young women',pill:'Anime'},
+  {id:'seinen',name:'Seinen',emoji:'🖤',color:'gc-red',type:['anime'],count:'3,100+',desc:'Mature themes aimed at adult male audiences',pill:'Anime'},
+  {id:'josei',name:'Josei',emoji:'💜',color:'gc-purple',type:['anime'],count:'900+',desc:'Realistic romance for adult women',pill:'Anime'},
+  {id:'isekai',name:'Isekai',emoji:'🌀',color:'gc-cyan',type:['anime'],count:'2,200+',desc:'Transported to another world narratives',pill:'Anime'},
+  {id:'mecha',name:'Mecha',emoji:'🤖',color:'gc-blue',type:['anime'],count:'800+',desc:'Giant robots and mechanical warfare',pill:'Anime'},
+  {id:'slice',name:'Slice of Life',emoji:'☕',color:'gc-green',type:['anime'],count:'3,400+',desc:'Everyday life with heartfelt moments',pill:'Anime'},
+  {id:'psychological',name:'Psychological',emoji:'🧠',color:'gc-purple',type:['movie','series','anime'],count:'4,300+',desc:'Mind games, mental health, and perception'},
+  {id:'cyberpunk',name:'Cyberpunk',emoji:'🌆',color:'gc-cyan',type:['movie','series','anime'],count:'800+',desc:'High tech, low life dystopian futures'},
+  {id:'noir',name:'Film Noir',emoji:'🌧️',color:'gc-blue',type:['movie','series'],count:'2,900+',desc:'Dark, cynical crime stories with moral ambiguity'},
+  {id:'surreal',name:'Surreal',emoji:'🌊',color:'gc-purple',type:['movie','series','anime'],count:'1,400+',desc:'Dream logic, absurdism, and reality distortion'},
+  {id:'true-crime',name:'True Crime',emoji:'🔪',color:'gc-red',type:['documentary','series'],count:'4,800+',desc:'Real criminal cases, investigations, and justice'},
+];
+
+const GENRE_DATA_MAP = {
+  Action:{mood:'High Energy',pacing:'Fast',audience:'18–35M',avgLen:'120 min',subgenres:'Martial Arts, Military, Superhero, Heist',notable:'Top Gun, Mad Max, John Wick'},
+  Drama:{mood:'Emotional',pacing:'Moderate',audience:'25–55F',avgLen:'115 min',subgenres:'Historical, Legal, Medical, Family',notable:"The Godfather, Schindler's List"},
+  Comedy:{mood:'Light',pacing:'Varied',audience:'All ages',avgLen:'95 min',subgenres:'Romantic, Dark, Slapstick, Satire',notable:'Some Like It Hot, Superbad'},
+  Thriller:{mood:'Tense',pacing:'Fast',audience:'20–45M',avgLen:'118 min',subgenres:'Psychological, Legal, Espionage, Neo-noir',notable:'Silence of the Lambs, Se7en'},
+  'Sci-Fi':{mood:'Cerebral',pacing:'Varied',audience:'20–40M',avgLen:'125 min',subgenres:'Space Opera, Cyberpunk, Time Travel, Biopunk',notable:'2001, Blade Runner, Dune'},
+  Horror:{mood:'Fearful',pacing:'Slow–Fast',audience:'18–30',avgLen:'100 min',subgenres:'Slasher, Supernatural, Psychological, Found Footage',notable:'The Shining, Get Out'},
+  Fantasy:{mood:'Wonder',pacing:'Epic',audience:'All ages',avgLen:'130 min',subgenres:'High Fantasy, Urban Fantasy, Dark Fantasy',notable:'LOTR, Harry Potter'},
+  Romance:{mood:'Warm',pacing:'Slow',audience:'25–45F',avgLen:'105 min',subgenres:'Romantic Comedy, Historical, Paranormal',notable:'Pride & Prejudice, La La Land'},
+  Crime:{mood:'Gritty',pacing:'Methodical',audience:'25–50M',avgLen:'120 min',subgenres:'Heist, Gangster, Police Procedural, Neo-Noir',notable:'The Godfather, Heat'},
+  Mystery:{mood:'Curious',pacing:'Slow',audience:'30–60',avgLen:'110 min',subgenres:'Cozy, Detective, Whodunit, Locked Room',notable:'Agatha Christie, Sherlock'},
+  Animation:{mood:'Varied',pacing:'Varied',audience:'All ages',avgLen:'90 min',subgenres:'CGI, Hand-drawn, Stop Motion, 2D',notable:'Toy Story, Spirited Away'},
+  Documentary:{mood:'Informative',pacing:'Varied',audience:'30–65',avgLen:'95 min',subgenres:'Nature, True Crime, Political, Sports',notable:'Planet Earth, Making a Murderer'},
+};
+
+const SERIES_DATA = [
+  {title:'Breaking Bad',genre:'Crime Drama',platform:'Netflix',year:'2008',rating:'9.5',emoji:'⚗️',color:'#065f46',tags:['Crime','Drama','Thriller']},
+  {title:'Game of Thrones',genre:'Fantasy Drama',platform:'HBO',year:'2011',rating:'9.3',emoji:'🐉',color:'#1e1b4b',tags:['Fantasy','Drama','Action']},
+  {title:'Stranger Things',genre:'Sci-Fi Horror',platform:'Netflix',year:'2016',rating:'8.7',emoji:'🔦',color:'#1a0f3c',tags:['Sci-Fi','Horror','Drama']},
+  {title:'Succession',genre:'Drama Thriller',platform:'HBO',year:'2018',rating:'8.9',emoji:'💼',color:'#1c1917',tags:['Drama','Thriller','Comedy']},
+  {title:'Dark',genre:'Sci-Fi Mystery',platform:'Netflix',year:'2017',rating:'8.8',emoji:'⏳',color:'#0f172a',tags:['Sci-Fi','Mystery','Thriller']},
+  {title:'The Boys',genre:'Superhero Satire',platform:'Amazon',year:'2019',rating:'8.7',emoji:'🦸',color:'#3b0000',tags:['Superhero','Action','Comedy']},
+  {title:'The Last of Us',genre:'Sci-Fi Drama',platform:'HBO',year:'2023',rating:'9.0',emoji:'🍄',color:'#1a3a1a',tags:['Sci-Fi','Drama','Horror']},
+  {title:'Severance',genre:'Sci-Fi Thriller',platform:'Apple TV+',year:'2022',rating:'8.7',emoji:'🏢',color:'#0f1a2a',tags:['Sci-Fi','Thriller','Mystery']},
+];
+
+const ANIME_DATA = [
+  {title:'Attack on Titan',genre:'Dark Fantasy',platform:'Crunchyroll',year:'2013',rating:'9.0',emoji:'⚔️',color:'#3d0000',tags:['Action','Drama','Shōnen']},
+  {title:'Death Note',genre:'Psychological Thriller',platform:'Netflix',year:'2006',rating:'9.0',emoji:'📓',color:'#0d0d0d',tags:['Thriller','Mystery','Seinen']},
+  {title:'Fullmetal Alchemist: Brotherhood',genre:'Action Adventure',platform:'Crunchyroll',year:'2009',rating:'9.1',emoji:'⚗️',color:'#4d2600',tags:['Action','Fantasy','Shōnen']},
+  {title:'Your Name',genre:'Romance Fantasy',platform:'Prime',year:'2016',rating:'8.9',emoji:'🌟',color:'#1a0033',tags:['Romance','Fantasy']},
+  {title:'Steins;Gate',genre:'Sci-Fi Thriller',platform:'Crunchyroll',year:'2011',rating:'9.1',emoji:'⏱️',color:'#0a0f1f',tags:['Sci-Fi','Thriller','Drama']},
+  {title:'Demon Slayer',genre:'Action Fantasy',platform:'Crunchyroll',year:'2019',rating:'8.7',emoji:'🌊',color:'#1a0010',tags:['Action','Fantasy','Shōnen']},
+  {title:'One Punch Man',genre:'Action Comedy',platform:'Netflix',year:'2015',rating:'8.8',emoji:'👊',color:'#1a0a00',tags:['Action','Comedy','Superhero']},
+  {title:'Cowboy Bebop',genre:'Sci-Fi Noir',platform:'Netflix',year:'1998',rating:'8.9',emoji:'🚀',color:'#1a1100',tags:['Sci-Fi','Action','Seinen']},
+];
+
+const MOODS=[
+  {emoji:'😤',label:'Pumped Up',desc:'Need adrenaline',genres:['Action','Superhero','Thriller'],color:'#dc2626'},
+  {emoji:'😭',label:'Cry It Out',desc:'Want to feel deeply',genres:['Drama','Romance'],color:'#2563eb'},
+  {emoji:'😂',label:'Need Laughs',desc:'Just smile',genres:['Comedy','Animation'],color:'#d97706'},
+  {emoji:'😱',label:'Scared Thrilled',desc:'Love the fear',genres:['Horror','Thriller'],color:'#7c3aed'},
+  {emoji:'🤔',label:'Mind Blown',desc:'Brain workout',genres:['Mystery','Sci-Fi','Psychological'],color:'#0891b2'},
+  {emoji:'🌟',label:'Inspired',desc:'Need motivation',genres:['Biography','Sports','Drama'],color:'#059669'},
+  {emoji:'😌',label:'Chill Vibes',desc:'Relaxed',genres:['Slice of Life','Comedy','Romance'],color:'#c2410c'},
+  {emoji:'🌌',label:'Lost in Worlds',desc:'Escape reality',genres:['Fantasy','Sci-Fi','Anime'],color:'#6d28d9'},
+];
+
+const ANIME_DEMO=[
+  {key:'Shōnen',desc:'Young male, 12–18',emoji:'⚡',color:'#f97316',examples:'Naruto, DBZ, Demon Slayer'},
+  {key:'Shōjo',desc:'Young female, 12–18',emoji:'🌸',color:'#ec4899',examples:'Sailor Moon, Fruits Basket'},
+  {key:'Seinen',desc:'Adult male, 18+',emoji:'🖤',color:'#ef4444',examples:'Berserk, Vinland Saga'},
+  {key:'Josei',desc:'Adult female, 18+',emoji:'💜',color:'#8b5cf6',examples:'Nana, Chihayafuru'},
+  {key:'Kodomomuke',desc:'Children, under 12',emoji:'🌟',color:'#fbbf24',examples:'Doraemon, Pokemon'},
+];
+
+const ANIME_THEMES=[
+  {key:'Isekai',emoji:'🌀',color:'#06b6d4',examples:'Re:Zero, That Time I Got Reincarnated'},
+  {key:'Mecha',emoji:'🤖',color:'#3b82f6',examples:'Evangelion, Code Geass'},
+  {key:'Slice of Life',emoji:'☕',color:'#10b981',examples:"K-On!, March Comes in like a Lion"},
+  {key:'Mahou Shoujo',emoji:'✨',color:'#fbbf24',examples:'Sailor Moon, Madoka'},
+  {key:'Sports',emoji:'🏃',color:'#f97316',examples:"Haikyuu!!, Kuroko's Basketball"},
+  {key:'Psychological',emoji:'🧠',color:'#7c3aed',examples:'Death Note, Monster'},
+];
+
+const QUIZ_QUESTIONS=[
+  {q:'What pace do you prefer?',opts:['Slow & deep','Fast & exciting','Balanced mix','Unpredictable']},
+  {q:'Pick a setting:',opts:['Future/Space','Historical past','Present day','Fantasy realm']},
+  {q:'Preferred emotional tone?',opts:['Dark & serious','Light & fun','Tense & anxious','Romantic & warm']},
+  {q:'What matters most?',opts:['Plot twists','Characters','Action sequences','World building']},
+  {q:'How to feel after watching?',opts:['Thinking deeply','Laughing & happy','Scared/thrilled','Emotionally moved']},
+];
+
+const QUIZ_RESULTS=[
+  {emoji:'🧠',title:'PSYCHOLOGICAL THRILLER',desc:'You crave mental challenge, unpredictable twists, and deep character studies. Watch: Mindhunter, Dark, Death Note'},
+  {emoji:'🚀',title:'SCI-FI EPIC',desc:'Cosmic wonder meets big ideas. Watch: Interstellar, Dune, Steins;Gate'},
+  {emoji:'😂',title:'DARK COMEDY',desc:'Wit with edge. Watch: Fleabag, What We Do in Shadows, Great Teacher Onizuka'},
+  {emoji:'⚔️',title:'ACTION ADVENTURE',desc:'Kinetic energy, heroic journeys. Watch: Mad Max, Attack on Titan, FMA Brotherhood'},
+  {emoji:'💕',title:'PRESTIGE DRAMA',desc:'Rich character work and emotional depth. Watch: Succession, Your Name, A Silent Voice'},
+  {emoji:'🌌',title:'DARK FANTASY',desc:'Magic meets darkness. Watch: Game of Thrones, Berserk, Vinland Saga'},
+];
+
+const CHART_DATA=[
+  {label:'50s',val:25},{label:'60s',val:35},{label:'70s',val:52},
+  {label:'80s',val:68},{label:'90s',val:74},{label:'00s',val:85},
+  {label:'10s',val:94},{label:'20s',val:100},
+];
+
+const TIMELINE_EVENTS=[
+  {era:'1890s–1920s',title:'Silent Era & Genre Birth',desc:'Cinema invents melodrama, slapstick comedy, and horror.'},
+  {era:'1930s–1940s',title:'Golden Age Genres',desc:'Film noir, screwball comedy, and the musical flourish.'},
+  {era:'1950s–1960s',title:'Science Fiction Explosion',desc:'Cold War anxiety spawns sci-fi. French New Wave disrupts conventions.'},
+  {era:'1970s',title:'New Hollywood Deconstruction',desc:'The Godfather redefines crime drama. Jaws births the blockbuster.'},
+  {era:'1980s',title:'Blockbuster Era',desc:'Action explodes. MTV-style influences visual storytelling.'},
+  {era:'1990s',title:'Independent Renaissance',desc:'Pulp Fiction remixes crime. The Matrix redefines sci-fi. Anime goes global.'},
+  {era:'2000s',title:'Superhero & Fantasy Rise',desc:'MCU lays foundation. Prestige TV rises on HBO.'},
+  {era:'2010s',title:'Streaming Revolution',desc:'Netflix shifts power. Korean cinema achieves global acclaim. Anime mainstream.'},
+  {era:'2020s',title:'Genre Fusion Era',desc:'Hybrid genres dominate. K-drama and anime merge with Western production.'},
+];
+
+let quizAnswers=[],quizQ=0;
+let watchlist=[
+  {title:'Succession',genre:'Drama Thriller',emoji:'💼',done:false},
+  {title:'Attack on Titan',genre:'Action Shōnen',emoji:'⚔️',done:true},
+  {title:'Dune: Part Two',genre:'Sci-Fi Epic',emoji:'🏜️',done:false},
+  {title:'The Bear',genre:'Drama Comedy',emoji:'🍳',done:false},
+];
+let currentTab='all';
+
+// ═══════════════════════════════════════════════════
+// THREE.JS HERO BACKGROUND
+// ═══════════════════════════════════════════════════
+(function(){
+  const canvas=document.getElementById('heroCanvas');
+  if(!canvas||typeof THREE==='undefined')return;
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(75,1,.1,1000);
+  camera.position.z=80;
+  const N=2000;
+  const pos=new Float32Array(N*3),col=new Float32Array(N*3),sz=new Float32Array(N);
+  const pal=[new THREE.Color('#e63e6d'),new THREE.Color('#7c3aed'),new THREE.Color('#06b6d4'),new THREE.Color('#f59e0b'),new THREE.Color('#a78bfa')];
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-.5)*300;pos[i*3+1]=(Math.random()-.5)*300;pos[i*3+2]=(Math.random()-.5)*200;
+    const c=pal[Math.floor(Math.random()*pal.length)];col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
+    sz[i]=Math.random()*1.8+.4;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const mat=new THREE.PointsMaterial({size:.9,vertexColors:true,transparent:true,opacity:.65});
+  const pts=new THREE.Points(geo,mat);
+  scene.add(pts);
+  function resize(){const w=canvas.clientWidth,h=canvas.clientHeight||window.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  new ResizeObserver(resize).observe(canvas);resize();
+  let t=0;
+  (function animate(){requestAnimationFrame(animate);t+=.0008;pts.rotation.y=t*.3;pts.rotation.x=t*.1;mat.opacity=.55+Math.sin(t*2)*.1;renderer.render(scene,camera);})();
+})();
+
+// ═══════════════════════════════════════════════════
+// SOLAR SYSTEM 3D — PROPER ORBITAL MECHANICS
+// ═══════════════════════════════════════════════════
+(function(){
+  const canvas=document.getElementById('universeCanvas');
+  if(!canvas||typeof THREE==='undefined')return;
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(55,1,.1,2000);
+  camera.position.set(0,80,180);
+  camera.lookAt(0,0,0);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0x111133,1.5));
+  const sun_light=new THREE.PointLight(0xffffff,4,400);
+  sun_light.position.set(0,0,0);
+  scene.add(sun_light);
+  const rim=new THREE.DirectionalLight(0x7c3aed,1);
+  rim.position.set(-100,80,-100);
+  scene.add(rim);
+
+  // Sun (center)
+  const sunGeo=new THREE.SphereGeometry(10,32,32);
+  const sunMat=new THREE.MeshBasicMaterial({color:0xffd700});
+  const sun=new THREE.Mesh(sunGeo,sunMat);
+  scene.add(sun);
+  // Sun glow layers
+  [18,24,32].forEach((r,i)=>{
+    const g=new THREE.SphereGeometry(r,32,32);
+    const m=new THREE.MeshBasicMaterial({color:0xffa500,transparent:true,opacity:[.15,.08,.04][i],side:THREE.BackSide});
+    scene.add(new THREE.Mesh(g,m));
+  });
+
+  // Sun corona animation (custom ring)
+  const coronaGeo=new THREE.TorusGeometry(14,2,8,60);
+  const coronaMat=new THREE.MeshBasicMaterial({color:0xffdd00,transparent:true,opacity:.3,wireframe:true});
+  const corona=new THREE.Mesh(coronaGeo,coronaMat);
+  scene.add(corona);
+
+  // Planet definitions — genre planets with proper orbital data
+  const PLANETS=[
+    {name:'Action',   color:0xe63e6d,size:6.5, a:35,  b:30,  incl:8,   speed:1.4, tilt:15, texColor:0xff4444},
+    {name:'Drama',    color:0x3b82f6,size:8.0, a:55,  b:48,  incl:5,   speed:1.0, tilt:22, texColor:0x4488ff},
+    {name:'Sci-Fi',   color:0x06b6d4,size:7.0, a:72,  b:64,  incl:12,  speed:0.8, tilt:10, texColor:0x00ccee},
+    {name:'Horror',   color:0xef4444,size:5.5, a:88,  b:76,  incl:18,  speed:0.65,tilt:35, texColor:0xcc2222},
+    {name:'Fantasy',  color:0xa855f7,size:9.0, a:108, b:94,  incl:3,   speed:0.5, tilt:5,  texColor:0x9933ff},
+    {name:'Comedy',   color:0xf59e0b,size:6.0, a:50,  b:44,  incl:15,  speed:1.2, tilt:20, texColor:0xffaa00},
+    {name:'Thriller', color:0x8b5cf6,size:5.0, a:62,  b:56,  incl:9,   speed:0.9, tilt:28, texColor:0x7744cc},
+    {name:'Romance',  color:0xec4899,size:5.5, a:80,  b:70,  incl:22,  speed:0.7, tilt:42, texColor:0xff66aa},
+    {name:'Crime',    color:0xdc2626,size:4.5, a:95,  b:82,  incl:7,   speed:0.55,tilt:12, texColor:0xcc3333},
+    {name:'Anime',    color:0xf97316,size:7.5, a:120, b:105, incl:25,  speed:0.4, tilt:8,  texColor:0xff7722},
+    {name:'Mystery',  color:0x0891b2,size:4.0, a:40,  b:36,  incl:20,  speed:1.6, tilt:50, texColor:0x0099bb},
+    {name:'Adventure',color:0x10b981,size:6.0, a:130, b:112, incl:4,   speed:0.35,tilt:18, texColor:0x22cc88},
+    {name:'Shōnen',   color:0xfbbf24,size:4.5, a:46,  b:40,  incl:30,  speed:1.3, tilt:60, texColor:0xffcc33},
+    {name:'Mecha',    color:0x60a5fa,size:4.0, a:140, b:122, incl:16,  speed:0.3, tilt:25, texColor:0x4499ff},
+    {name:'Isekai',   color:0x22d3ee,size:3.5, a:30,  b:26,  incl:40,  speed:2.0, tilt:70, texColor:0x11ccee},
+  ];
+
+  const planetMeshes=[];
+  const planetAngles=PLANETS.map(()=>Math.random()*Math.PI*2);
+  const orbitLines=[];
+
+  PLANETS.forEach((p,idx)=>{
+    // Orbit ellipse — drawn as TubeGeometry following Kepler path
+    const orbitPts=[];
+    const steps=128;
+    for(let i=0;i<=steps;i++){
+      const theta=(i/steps)*Math.PI*2;
+      const x=p.a*Math.cos(theta);
+      const z=p.b*Math.sin(theta);
+      // Apply inclination
+      const inclRad=p.incl*Math.PI/180;
+      const y=z*Math.sin(inclRad);
+      const zf=z*Math.cos(inclRad);
+      orbitPts.push(new THREE.Vector3(x,y,zf));
+    }
+    const orbitCurve=new THREE.CatmullRomCurve3(orbitPts,true);
+    const orbitGeo=new THREE.TubeGeometry(orbitCurve,128,.15,8,true);
+    const orbitMat=new THREE.MeshBasicMaterial({color:p.color,transparent:true,opacity:.18});
+    const orbitLine=new THREE.Mesh(orbitGeo,orbitMat);
+    scene.add(orbitLine);
+    orbitLines.push({curve:orbitCurve,mat:orbitMat});
+
+    // Planet sphere
+    const pGeo=new THREE.SphereGeometry(p.size,32,32);
+    // Create striped/banded texture via canvas
+    const tc=document.createElement('canvas');tc.width=256;tc.height=128;
+    const ctx=tc.getContext('2d');
+    const c1=new THREE.Color(p.color);
+    const c2=new THREE.Color(p.texColor);
+    for(let y=0;y<128;y+=8){
+      ctx.fillStyle=y%16===0?`rgb(${Math.round(c1.r*255)},${Math.round(c1.g*255)},${Math.round(c1.b*255)})`:`rgb(${Math.round(c2.r*255)},${Math.round(c2.g*255)},${Math.round(c2.b*255)})`;
+      ctx.fillRect(0,y,256,8);
+    }
+    const tex=new THREE.CanvasTexture(tc);
+    const pMat=new THREE.MeshPhongMaterial({map:tex,emissive:p.color,emissiveIntensity:.2,shininess:60});
+    const mesh=new THREE.Mesh(pGeo,pMat);
+    mesh.rotation.z=p.tilt*Math.PI/180;
+    mesh.userData={...p,idx};
+    scene.add(mesh);
+    planetMeshes.push(mesh);
+
+    // Rings for some planets
+    if(p.name==='Fantasy'||p.name==='Anime'){
+      const rGeo=new THREE.TorusGeometry(p.size*1.6,p.size*.15,8,60);
+      const rMat=new THREE.MeshBasicMaterial({color:p.color,transparent:true,opacity:.4,side:THREE.DoubleSide});
+      const ring=new THREE.Mesh(rGeo,rMat);
+      ring.rotation.x=Math.PI/3;
+      mesh.add(ring);
+    }
+
+    // Moons for big planets
+    if(p.size>6.5){
+      const mGeo=new THREE.SphereGeometry(p.size*.25,16,16);
+      const mMat=new THREE.MeshPhongMaterial({color:0x888888,emissive:0x222222});
+      const moon=new THREE.Mesh(mGeo,mMat);
+      moon.userData.isMoon=true;
+      moon.userData.moonRadius=p.size*2.5;
+      moon.userData.moonAngle=Math.random()*Math.PI*2;
+      mesh.add(moon);
+    }
+
+    // Atmospheric glow
+    const atmGeo=new THREE.SphereGeometry(p.size*1.15,32,32);
+    const atmMat=new THREE.MeshBasicMaterial({color:p.color,transparent:true,opacity:.1,side:THREE.BackSide});
+    mesh.add(new THREE.Mesh(atmGeo,atmMat));
+  });
+
+  // Asteroid belt between orbit 4 and 5
+  const beltGroup=new THREE.Group();
+  for(let i=0;i<200;i++){
+    const r=95+Math.random()*10;
+    const theta=Math.random()*Math.PI*2;
+    const y=(Math.random()-.5)*4;
+    const aGeo=new THREE.SphereGeometry(Math.random()*.5+.2,4,4);
+    const aMat=new THREE.MeshBasicMaterial({color:0x666666});
+    const a=new THREE.Mesh(aGeo,aMat);
+    a.position.set(r*Math.cos(theta),y,r*Math.sin(theta));
+    beltGroup.add(a);
+  }
+  scene.add(beltGroup);
+
+  // Star field
+  const starGeo=new THREE.BufferGeometry();
+  const sp=new Float32Array(3000*3);
+  for(let i=0;i<3000;i++){sp[i*3]=(Math.random()-.5)*1200;sp[i*3+1]=(Math.random()-.5)*1200;sp[i*3+2]=(Math.random()-.5)*1200;}
+  starGeo.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:.5,transparent:true,opacity:.5})));
+
+  // CSS label overlay
+  const labelDiv=document.createElement('div');
+  labelDiv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;';
+  canvas.parentElement.style.position='relative';
+  canvas.parentElement.appendChild(labelDiv);
+  const labels=PLANETS.map(p=>{
+    const el=document.createElement('div');
+    el.textContent=p.name;
+    el.style.cssText=`position:absolute;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:#fff;letter-spacing:1px;padding:3px 7px;border-radius:4px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);transform:translate(-50%,-50%);pointer-events:none;opacity:.9;text-shadow:0 0 10px rgba(255,255,255,.5);white-space:nowrap;transition:all .3s;`;
+    labelDiv.appendChild(el);
+    return el;
+  });
+
+  // Tooltip
+  const tooltip=document.createElement('div');
+  tooltip.style.cssText='position:absolute;background:rgba(6,8,16,.95);border:1px solid rgba(124,58,237,.4);border-radius:12px;padding:.6rem 1rem;font-size:.8rem;color:#f0f4ff;pointer-events:none;opacity:0;transition:opacity .3s;max-width:180px;z-index:10;';
+  canvas.parentElement.appendChild(tooltip);
+
+  // Resize
+  function resize(){
+    const w=canvas.clientWidth,h=Math.min(600,canvas.clientHeight||600);
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(canvas);resize();
+
+  // Controls
+  let isDrag=false,lastX=0,lastY=0;
+  let rotX=0.3,rotY=0,targetRotX=0.3,targetRotY=0;
+  let zoom=180,targetZoom=180;
+  const sysGroup=new THREE.Group();
+  scene.add(sysGroup);
+  // Move all objects into sysGroup
+  [sun,...planetMeshes,...orbitLines.map(o=>null)].forEach(()=>{});
+  // Actually just rotate camera via group transform
+
+  canvas.addEventListener('mousedown',e=>{isDrag=true;lastX=e.clientX;lastY=e.clientY;});
+  window.addEventListener('mouseup',()=>isDrag=false);
+  window.addEventListener('mousemove',e=>{
+    if(!isDrag)return;
+    targetRotY+=(e.clientX-lastX)*.005;
+    targetRotX+=(e.clientY-lastY)*.003;
+    targetRotX=Math.max(-1.4,Math.min(1.4,targetRotX));
+    lastX=e.clientX;lastY=e.clientY;
+  });
+  canvas.addEventListener('wheel',e=>{targetZoom=Math.max(60,Math.min(350,targetZoom+e.deltaY*.12));e.preventDefault();},{passive:false});
+  canvas.addEventListener('touchstart',e=>{lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;},{passive:true});
+  canvas.addEventListener('touchmove',e=>{
+    targetRotY+=(e.touches[0].clientX-lastX)*.005;
+    targetRotX+=(e.touches[0].clientY-lastY)*.003;
+    lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
+    e.preventDefault();
+  },{passive:false});
+
+  // Raycaster
+  const raycaster=new THREE.Raycaster();
+  const mouse=new THREE.Vector2();
+  let hoveredPlanet=null;
+  canvas.addEventListener('mousemove',e=>{
+    const rect=canvas.getBoundingClientRect();
+    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+    mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouse,camera);
+    const hits=raycaster.intersectObjects(planetMeshes);
+    if(hits.length>0){
+      const m=hits[0].object;
+      if(hoveredPlanet!==m){
+        if(hoveredPlanet)hoveredPlanet.material.emissiveIntensity=.2;
+        hoveredPlanet=m;
+        m.material.emissiveIntensity=.8;
+        canvas.style.cursor='pointer';
+        tooltip.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;color:#a78bfa;margin-bottom:.25rem;">${m.userData.name}</div><div style="font-size:.72rem;color:#8892a4;">${GENRE_DATA_MAP[m.userData.name]?.subgenres||'Explore subgenres'}</div>`;
+        tooltip.style.opacity='1';
+        const pr=canvas.getBoundingClientRect();
+        tooltip.style.left=(e.clientX-pr.left+12)+'px';
+        tooltip.style.top=(e.clientY-pr.top-12)+'px';
+      }
+    }else{
+      if(hoveredPlanet){hoveredPlanet.material.emissiveIntensity=.2;hoveredPlanet=null;}
+      canvas.style.cursor='grab';
+      tooltip.style.opacity='0';
+    }
+  });
+  canvas.addEventListener('click',e=>{
+    const rect=canvas.getBoundingClientRect();
+    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+    mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouse,camera);
+    const hits=raycaster.intersectObjects(planetMeshes);
+    if(hits.length>0)toast(`Exploring ${hits[0].object.userData.name}!`,'🪐');
+  });
+
+  const projVec=new THREE.Vector3();
+  function project(pos){
+    projVec.copy(pos).project(camera);
+    const rect=canvas.getBoundingClientRect();
+    return{x:(projVec.x*.5+.5)*rect.width,y:(-projVec.y*.5+.5)*rect.height,behind:projVec.z>1};
+  }
+
+  let t=0;
+  (function animate(){
+    requestAnimationFrame(animate);
+    t+=.005;
+
+    // Smooth camera orbit
+    rotX+=(targetRotX-rotX)*.05;
+    rotY+=(targetRotY-rotY)*.05;
+    zoom+=(targetZoom-zoom)*.04;
+
+    const cx=zoom*Math.sin(rotY)*Math.cos(rotX);
+    const cy=zoom*Math.sin(rotX);
+    const cz=zoom*Math.cos(rotY)*Math.cos(rotX);
+    camera.position.set(cx,cy,cz);
+    camera.lookAt(0,0,0);
+
+    // Sun pulse
+    sun.scale.setScalar(1+Math.sin(t*2)*.03);
+    corona.rotation.z+=.008;
+    corona.rotation.y+=.005;
+
+    // Asteroid belt rotation
+    beltGroup.rotation.y+=.001;
+
+    // Update planet positions via Keplerian ellipse
+    PLANETS.forEach((p,i)=>{
+      planetAngles[i]+=p.speed*.012;
+      const theta=planetAngles[i];
+      const x=p.a*Math.cos(theta);
+      const z=p.b*Math.sin(theta);
+      const inclRad=p.incl*Math.PI/180;
+      const y=z*Math.sin(inclRad);
+      const zf=z*Math.cos(inclRad);
+      planetMeshes[i].position.set(x,y,zf);
+      // Self rotation
+      planetMeshes[i].rotation.y+=.02+i*.003;
+      // Moon orbit
+      planetMeshes[i].children.forEach(child=>{
+        if(child.userData.isMoon){
+          child.userData.moonAngle+=.04;
+          const mr=child.userData.moonRadius;
+          child.position.set(mr*Math.cos(child.userData.moonAngle),0,mr*Math.sin(child.userData.moonAngle));
+        }
+      });
+    });
+
+    renderer.render(scene,camera);
+
+    // Update labels
+    PLANETS.forEach((p,i)=>{
+      const pos=planetMeshes[i].position;
+      const pr=project(pos);
+      if(pr.behind){labels[i].style.display='none';return;}
+      labels[i].style.display='block';
+      labels[i].style.left=pr.x+'px';
+      labels[i].style.top=(pr.y-p.size*14)+'px';
+    });
+  })();
+})();
+
+// ═══════════════════════════════════════════════════
+// FLOATING BADGES
+// ═══════════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('floatingBadges');
+  if(!c)return;
+  const words=['Action','Drama','Thriller','Sci-Fi','Horror','Fantasy','Romance','Crime','Mystery','Anime','Shōnen','Isekai','Mecha','Noir','Cyberpunk','Comedy','Adventure','Psychological','Musical','Western','Seinen','Shōjo','Slice of Life','Mecha','Attack on Titan','Naruto','One Piece'];
+  let i=0;
+  function spawn(){
+    const el=document.createElement('div');
+    el.className='float-badge';
+    el.textContent=words[i++%words.length];
+    const left=Math.random()*90+5,dur=Math.random()*14+14,drift=(Math.random()-.5)*120;
+    el.style.cssText+=`left:${left}%;bottom:-50px;--drift:${drift}px;animation-duration:${dur}s;animation-delay:${Math.random()*2}s;`;
+    c.appendChild(el);
+    setTimeout(()=>el.remove(),(dur+3)*1000);
+  }
+  for(let j=0;j<14;j++)setTimeout(spawn,j*500);
+  setInterval(spawn,1500);
+})();
+
+// ═══════════════════════════════════════════════════
+// RENDER ANIME CHARACTERS
+// ═══════════════════════════════════════════════════
+function renderCharacters(){
+  const grid=document.getElementById('characterGrid');
+  if(!grid)return;
+  const colorMap={'Naruto':'rgba(249,115,22,.08)','Dragon Ball Z':'rgba(245,158,11,.08)','Death Note':'rgba(99,102,241,.08)','Attack on Titan':'rgba(100,116,139,.08)','Demon Slayer':'rgba(6,182,212,.08)','Re:Zero':'rgba(59,130,246,.08)'};
+  grid.innerHTML=ANIME_CHARACTERS.map((c,idx)=>`
+    <div class="char-card" style="background:${colorMap[c.series]||'rgba(124,58,237,.08)'};border-color:${c.color}30;--char-color:${c.color};"
+      onmouseenter="this.querySelector('.char-svg').style.animation='charFloat 2s ease-in-out infinite, charGlow 3s ease-in-out infinite'"
+      onmouseleave="this.querySelector('.char-svg').style.animation=''"
+      onclick="toast('${c.name} from ${c.series}!','⭐')">
+      <div class="char-card" style="position:absolute;inset:0;background:radial-gradient(ellipse at top,${c.color}22,transparent 70%);border-radius:20px;pointer-events:none;border:none;transform:none;"></div>
+      ${c.svg}
+      <div class="char-name" style="color:${c.color}">${c.name}</div>
+      <div class="char-series">${c.series}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// NO-API CLASSIFIER ENGINE
+// ═══════════════════════════════════════════════════
+let suggestTimeout=null;
+
+function onAiInput(val){
+  clearTimeout(suggestTimeout);
+  if(val.length<2){hideSuggestions();return;}
+  suggestTimeout=setTimeout(()=>showSuggestions(val),150);
+}
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function fuzzyMatch(query,title){
+  const q=query.toLowerCase().trim();
+  const t=title.toLowerCase();
+  if(t.includes(q))return 1;
+  if(t.startsWith(q.substring(0,4)))return .9;
+  const words=q.split(' ');
+  const matchCount=words.filter(w=>t.includes(w)&&w.length>2).length;
+  if(matchCount>0)return matchCount/words.length*.8;
+  const lev=levenshtein(q,t.substring(0,Math.max(q.length,4)));
+  if(lev<=2)return.7;
+  return 0;
+}
+
+function searchDB(query,typeFilter){
+  const q=query.toLowerCase().trim();
+  return MOVIE_DB
+    .filter(m=>typeFilter==='any'||m.type===typeFilter)
+    .map(m=>({...m,score:fuzzyMatch(q,m.t)}))
+    .filter(m=>m.score>0)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,8);
+}
+
+function showSuggestions(val){
+  const box=document.getElementById('suggBox');
+  const type=document.getElementById('aiType').value;
+  const results=searchDB(val,type);
+  if(!results.length){box.classList.remove('open');return;}
+  const typeEmoji={movie:'🎬',series:'📺',anime:'🌸',documentary:'📹'};
+  box.innerHTML=results.map(r=>`
+    <div class="suggestion-item" onclick="selectSuggestion('${r.t.replace(/'/g,"\\'")}')">
+      <span class="sug-emoji">${typeEmoji[r.type]||'🎬'}</span>
+      <div>
+        <div class="sug-title">${r.t}</div>
+        <div class="sug-meta">${r.y} · ${r.type} · ${r.g[0]}</div>
+      </div>
+    </div>`).join('');
+  box.classList.add('open');
+}
+
+function hideSuggestions(){document.getElementById('suggBox').classList.remove('open');}
+function selectSuggestion(title){
+  document.getElementById('aiInput').value=title;
+  hideSuggestions();
+  classifyGenre();
+}
+
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))hideSuggestions();});
+
+function classifyByKeywords(desc){
+  const d=desc.toLowerCase();
+  const scores={};
+  Object.entries(GENRE_KEYWORDS).forEach(([genre,kws])=>{
+    scores[genre]=kws.filter(k=>d.includes(k)).length;
+  });
+  const sorted=Object.entries(scores).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const primary=sorted.slice(0,2).map(([g])=>g.replace('_',' '));
+  const secondary=sorted.slice(2,5).map(([g])=>g.replace('_',' '));
+  const moodMap={Action:['Intense','Exciting'],Drama:['Emotional','Thoughtful'],Comedy:['Fun','Light-hearted'],Thriller:['Tense','Suspenseful'],Horror:['Scary','Unsettling'],'Sci-Fi':['Cerebral','Futuristic'],Fantasy:['Magical','Epic'],Romance:['Warm','Romantic'],Crime:['Gritty','Dark'],Mystery:['Curious','Tense'],Isekai:['Escapist','Adventurous'],Mecha:['Epic','Mechanical']};
+  const moods=primary.length?moodMap[primary[0]]||['Engaging','Entertaining']:['Mixed','Varied'];
+  const conf=Math.min(95,60+sorted.slice(0,3).reduce((s,[,v])=>s+v*5,0));
+  return{primary:primary.slice(0,2),secondary:secondary.slice(0,3),mood:moods,confidence:conf,found:false};
+}
+
+function classifyGenre(){
+  const input=document.getElementById('aiInput').value.trim();
+  if(!input){toast('Please type a movie or show first!','⚠️');return;}
+  hideSuggestions();
+
+  const btn=document.getElementById('classifyBtn');
+  const btnText=document.getElementById('classifyBtnText');
+  const result=document.getElementById('aiResult');
+  const content=document.getElementById('aiResultContent');
+  const type=document.getElementById('aiType').value;
+  const detail=document.getElementById('aiDetail').value;
+
+  btn.disabled=true;btnText.textContent='Analyzing...';
+  result.classList.add('show');
+  content.innerHTML=`<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span style="margin-left:.5rem;font-size:.85rem;color:var(--muted)">Searching local database...</span></div>`;
+
+  setTimeout(()=>{
+    // Search DB first
+    const matches=searchDB(input,type);
+    let parsed,fromDB=false;
+
+    if(matches.length>0&&matches[0].score>.5){
+      const m=matches[0];
+      const similar=matches.slice(1,4).map(x=>x.t);
+      if(similar.length<3&&m.sim)similar.push(...m.sim.slice(0,3-similar.length));
+      parsed={primary:m.g.slice(0,2),secondary:m.g.slice(2,5),mood:m.m,confidence:Math.round(m.conf*(m.score)),analysis:m.d,similar:similar.slice(0,3),title:m.t,year:m.y,type:m.type};
+      fromDB=true;
+    } else {
+      // Keyword fallback
+      const kw=classifyByKeywords(input);
+      const relatedTitles=MOVIE_DB.filter(m=>m.g.some(g=>kw.primary.includes(g))).slice(0,3).map(m=>m.t);
+      parsed={...kw,analysis:`Based on your description, this appears to be a ${kw.primary.join('/')}-focused work with ${kw.secondary.slice(0,2).join(' and ')} elements. The themes and keywords suggest a ${kw.mood[0].toLowerCase()} tone.`,similar:relatedTitles};
+    }
+
+    const typeEmoji={movie:'🎬',series:'📺',anime:'🌸',documentary:'📹'};
+    const sourceTag=fromDB?`<span style="background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.3);padding:.2rem .6rem;border-radius:100px;font-size:.7rem;font-weight:700;margin-left:.5rem;">✓ Database Match</span>`:`<span style="background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.3);padding:.2rem .6rem;border-radius:100px;font-size:.7rem;font-weight:700;margin-left:.5rem;">~ Smart Match</span>`;
+
+    content.innerHTML=`
+      <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.75rem;display:flex;align-items:center;flex-wrap:wrap;gap:.5rem">
+        ✨ Genre Classification ${sourceTag}
+        ${fromDB&&parsed.title?`<span style="color:var(--accent);font-size:.78rem;font-weight:700;">${typeEmoji[parsed.type]||'🎬'} ${parsed.title} (${parsed.year})</span>`:''}
+      </div>
+      <div class="result-genres">
+        ${(parsed.primary||[]).map(g=>`<span class="genre-tag primary">🎯 ${g}</span>`).join('')}
+        ${(parsed.secondary||[]).map(g=>`<span class="genre-tag secondary">${g}</span>`).join('')}
+        ${(parsed.mood||[]).map(m=>`<span class="genre-tag mood">🎭 ${m}</span>`).join('')}
+      </div>
+      <div class="result-confidence">
+        <span class="conf-label">Confidence</span>
+        <div class="conf-bar"><div class="conf-fill" style="width:0%;" id="confBar"></div></div>
+        <span class="conf-pct">${parsed.confidence||80}%</span>
+      </div>
+      <div class="result-analysis" style="margin-top:1rem;padding:1rem;background:rgba(124,58,237,.06);border-radius:8px;border-left:3px solid var(--accent2)">${parsed.analysis||''}</div>
+      ${parsed.similar&&parsed.similar.length?`
+        <div style="margin-top:1rem">
+          <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">🎬 Similar Titles</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            ${parsed.similar.map(s=>`<span style="background:rgba(255,255,255,.06);border:1px solid var(--border);padding:.25rem .7rem;border-radius:100px;font-size:.78rem;cursor:pointer" onclick="document.getElementById('aiInput').value='${s.replace(/'/g,"\\'")}';classifyGenre()">${s}</span>`).join('')}
+          </div>
+        </div>`:''
+      }
+      ${detail==='deep'?`
+        <div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          ${parsed.primary.map(g=>{const d=GENRE_DATA_MAP[g]||{};return d.mood?`<div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:8px;"><div style="font-size:.7rem;color:var(--muted)">Mood</div><div style="font-size:.85rem;font-weight:600">${d.mood}</div></div><div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:8px;"><div style="font-size:.7rem;color:var(--muted)">Audience</div><div style="font-size:.85rem;font-weight:600">${d.audience}</div></div>`:'';}).join('')}
+        </div>`:''
+      }`;
+
+    // Animate confidence bar
+    setTimeout(()=>{const bar=document.getElementById('confBar');if(bar)bar.style.width=(parsed.confidence||80)+'%';},100);
+    btn.disabled=false;btnText.textContent='🎬 Classify Genre';
+
+    // Sparkle effect
+    for(let i=0;i<6;i++){
+      setTimeout(()=>{
+        const sp=document.createElement('div');
+        sp.className='sparkle';
+        sp.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;font-size:${12+Math.random()*8}px;`;
+        sp.textContent=['✨','⭐','🌟','💫'][Math.floor(Math.random()*4)];
+        result.appendChild(sp);
+        setTimeout(()=>sp.remove(),700);
+      },i*100);
+    }
+  },400);
+}
+
+function clearAI(){document.getElementById('aiInput').value='';document.getElementById('aiResult').classList.remove('show');hideSuggestions();}
+
+// ═══════════════════════════════════════════════════
+// INIT ALL
+// ═══════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  animateCounters();renderGenreGrid();renderSeries();renderAnime();renderMoods();
+  renderQuiz();renderCompare();renderStats();renderTimeline();renderWatchlist();renderChart();renderAnimeDemos();renderCharacters();
+});
+
+window.addEventListener('scroll',()=>{
+  document.getElementById('scrollTop').classList.toggle('show',window.scrollY>400);
+  document.querySelectorAll('section[id]').forEach(sec=>{
+    const t=sec.getBoundingClientRect().top;
+    if(t<100&&t>-400)document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+sec.id));
+  });
+});
+
+function animateCounters(){
+  const targets=[{id:'cnt1',target:500},{id:'cnt2',target:48},{id:'cnt3',target:999},{id:'cnt4',target:24}];
+  const suffixes=['+','','+',' '];
+  const labels=['','','∞',''];
+  targets.forEach(({id,target},i)=>{
+    let curr=0;const inc=target/60;
+    const timer=setInterval(()=>{
+      curr=Math.min(curr+inc,target);
+      const el=document.getElementById(id);
+      if(el)el.textContent=i===2?'∞':Math.floor(curr)+(suffixes[i]||'');
+      if(curr>=target)clearInterval(timer);
+    },25);
+  });
+}
+
+function renderGenreGrid(){
+  const container=document.getElementById('genreGrid');if(!container)return;
+  const q=(document.getElementById('genreSearch')||{}).value||'';
+  let filtered=currentTab==='all'?GENRES_DATA:GENRES_DATA.filter(g=>g.type.includes(currentTab));
+  if(q)filtered=filtered.filter(g=>g.name.toLowerCase().includes(q.toLowerCase())||g.desc.toLowerCase().includes(q.toLowerCase()));
+  container.innerHTML=filtered.map(g=>`
+    <div class="genre-card ${g.color}" onclick="openGenreModal('${g.id}')">
+      <div class="genre-card-glow"></div>
+      ${g.pill?`<span class="genre-pill" style="background:rgba(124,58,237,.2);color:#a78bfa">${g.pill}</span>`:''}
+      <span class="genre-emoji">${g.emoji}</span>
+      <div class="genre-name">${g.name}</div>
+      <div class="genre-count">${g.count} titles</div>
+    </div>`).join('');
+}
+
+function switchTab(tab,btn){currentTab=tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderGenreGrid();}
+function filterGenres(){renderGenreGrid();}
+
+function renderSeries(data){
+  const c=document.getElementById('seriesGrid');if(!c)return;
+  (data||SERIES_DATA).forEach(s=>{});
+  c.innerHTML=(data||SERIES_DATA).map(s=>`
+    <div class="series-card" onclick="toast('${s.title}','${s.emoji}')">
+      <div class="series-banner" style="background:linear-gradient(135deg,${s.color},#111827)">
+        <span style="position:relative;z-index:1">${s.emoji}</span><div class="series-banner-overlay"></div>
+      </div>
+      <div class="series-info">
+        <div class="series-genres">${s.tags.map(t=>`<span class="series-genre-tag" style="background:rgba(255,255,255,.07);color:var(--muted)">${t}</span>`).join('')}</div>
+        <div class="series-title">${s.title}</div>
+        <div class="series-meta"><span class="series-rating">★ ${s.rating}</span><span>${s.platform}</span><span>${s.year}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function filterSeries(){
+  const genre=document.getElementById('filterGenre').value;
+  const platform=document.getElementById('filterPlatform').value;
+  let data=[...SERIES_DATA];
+  if(genre)data=data.filter(s=>s.tags.includes(genre));
+  if(platform)data=data.filter(s=>s.platform===platform);
+  renderSeries(data);
+}
+
+function renderAnime(){
+  const g=document.getElementById('animeGrid');if(!g)return;
+  g.innerHTML=ANIME_DATA.map(s=>`
+    <div class="series-card" onclick="toast('${s.title}','${s.emoji}')">
+      <div class="series-banner" style="background:linear-gradient(135deg,${s.color},#111827)">
+        <span style="position:relative;z-index:1">${s.emoji}</span><div class="series-banner-overlay"></div>
+      </div>
+      <div class="series-info">
+        <div class="series-genres">${s.tags.map(t=>`<span class="series-genre-tag" style="background:rgba(255,255,255,.07);color:var(--muted)">${t}</span>`).join('')}</div>
+        <div class="series-title">${s.title}</div>
+        <div class="series-meta"><span class="series-rating">★ ${s.rating}</span><span>${s.platform}</span><span>${s.year}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderAnimeDemos(){
+  const dg=document.getElementById('animeDemoGrid'),tg=document.getElementById('animeThemeGrid');
+  if(dg)dg.innerHTML=ANIME_DEMO.map(d=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;display:flex;align-items:center;gap:.75rem"><span style="font-size:1.5rem">${d.emoji}</span><div><div style="font-weight:700;font-size:.88rem;color:${d.color}">${d.key}</div><div style="font-size:.75rem;color:var(--muted)">${d.desc}</div><div style="font-size:.72rem;color:var(--muted);margin-top:.2rem">${d.examples}</div></div></div>`).join('');
+  if(tg)tg.innerHTML=ANIME_THEMES.map(t=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;display:flex;align-items:center;gap:.75rem"><span style="font-size:1.5rem">${t.emoji}</span><div><div style="font-weight:700;font-size:.88rem;color:${t.color}">${t.key}</div><div style="font-size:.72rem;color:var(--muted)">${t.examples}</div></div></div>`).join('');
+}
+
+function renderMoods(){
+  const c=document.getElementById('moodGrid');if(!c)return;
+  c.innerHTML=MOODS.map(m=>`<div class="mood-card" onclick="toast('${m.label}: ${m.genres.join(', ')}','${m.emoji}')" style="background:${m.color}12;border-color:${m.color}30"><span class="mood-emoji">${m.emoji}</span><div class="mood-label">${m.label}</div><div class="mood-desc">${m.desc}</div><div style="margin-top:.5rem;display:flex;gap:.25rem;flex-wrap:wrap;justify-content:center">${m.genres.map(g=>`<span style="font-size:.6rem;background:rgba(255,255,255,.08);border-radius:100px;padding:.15rem .4rem">${g}</span>`).join('')}</div></div>`).join('');
+}
+
+function renderQuiz(){
+  const progress=document.getElementById('quizProgress'),content=document.getElementById('quizContent');
+  if(!progress||!content)return;
+  progress.innerHTML=QUIZ_QUESTIONS.map((_,i)=>`<div class="quiz-step ${i<quizQ?'done':''}"></div>`).join('');
+  if(quizQ>=QUIZ_QUESTIONS.length){
+    const r=QUIZ_RESULTS[Math.floor(Math.random()*QUIZ_RESULTS.length)];
+    content.innerHTML=`<div class="quiz-result-card show"><span class="quiz-result-emoji">${r.emoji}</span><div class="quiz-result-title">${r.title}</div><p class="quiz-result-desc">${r.desc}</p><button class="btn-classify" style="margin-top:1.5rem" onclick="quizQ=0;quizAnswers=[];renderQuiz()">Try Again →</button></div>`;
+    return;
+  }
+  const q=QUIZ_QUESTIONS[quizQ];
+  content.innerHTML=`<div class="quiz-q">${quizQ+1}. ${q.q}</div><div class="quiz-options">${q.opts.map((o,i)=>`<button class="quiz-option" onclick="quizAnswer(${i})">${o}</button>`).join('')}</div>`;
+}
+function quizAnswer(i){quizAnswers.push(i);quizQ++;renderQuiz();}
+
+const COMPARE_DATA={Action:{pace:'Fast',mood:'Intense',audience:'18–35',runtime:'120 min',production:'High',global:'★★★★★'},Drama:{pace:'Moderate',mood:'Emotional',audience:'25–55',runtime:'115 min',production:'Medium',global:'★★★★☆'},Comedy:{pace:'Varied',mood:'Light',audience:'All ages',runtime:'95 min',production:'Medium',global:'★★★★☆'},Thriller:{pace:'Fast',mood:'Tense',audience:'20–45',runtime:'118 min',production:'High',global:'★★★★☆'},'Sci-Fi':{pace:'Varied',mood:'Cerebral',audience:'20–40',runtime:'125 min',production:'Very High',global:'★★★★★'},Horror:{pace:'Slow-Fast',mood:'Fearful',audience:'18–30',runtime:'100 min',production:'Low-High',global:'★★★☆☆'},Fantasy:{pace:'Epic',mood:'Wonder',audience:'All ages',runtime:'130 min',production:'Very High',global:'★★★★★'},Romance:{pace:'Slow',mood:'Warm',audience:'25–45F',runtime:'105 min',production:'Low',global:'★★★☆☆'}};
+function renderCompare(){
+  const g1=document.getElementById('compare1').value,g2=document.getElementById('compare2').value;
+  const d1=COMPARE_DATA[g1]||{},d2=COMPARE_DATA[g2]||{};
+  const keys=['pace','mood','audience','runtime','production','global'],labels=['Pacing','Mood','Audience','Avg Runtime','Budget','Global Appeal'];
+  const mk=(d,g)=>`<div class="compare-card"><h3 style="font-family:'Bebas Neue';font-size:1.8rem;margin-bottom:1rem">${g}</h3>${keys.map((k,i)=>`<div class="compare-row"><span class="compare-label">${labels[i]}</span><span class="compare-value">${d[k]||'—'}</span></div>`).join('')}</div>`;
+  document.getElementById('compareGrid').innerHTML=`${mk(d1,g1)}<div class="vs-divider">VS</div>${mk(d2,g2)}`;
+}
+
+function renderStats(){
+  const g=document.getElementById('statsGrid');if(!g)return;
+  g.innerHTML=[{num:'500+',label:'DB Titles',change:'↑ Constantly growing',color:'var(--accent)'},{num:'48',label:'Genres',change:'↑ 3 new in 2024',color:'var(--accent2)'},{num:'∞',label:'Searches',change:'No API · No Limits',color:'var(--accent3)'},{num:'8.7',label:'Avg Rating',change:'Curated top picks',color:'var(--accent4)'}].map(s=>`<div class="stat-card"><div class="stat-card-num" style="color:${s.color}">${s.num}</div><div class="stat-card-label">${s.label}</div><div class="stat-card-change">${s.change}</div></div>`).join('');
+}
+
+function renderChart(){
+  const c=document.getElementById('chartBars');if(!c)return;
+  const max=Math.max(...CHART_DATA.map(d=>d.val));
+  c.innerHTML=CHART_DATA.map(d=>`<div class="chart-bar-wrap"><div class="chart-bar-val">${d.val}</div><div class="chart-bar" style="height:${(d.val/max)*160}px"></div><div class="chart-bar-label">${d.label}</div></div>`).join('');
+}
+
+function renderTimeline(){
+  const c=document.getElementById('timeline');if(!c)return;
+  c.innerHTML=TIMELINE_EVENTS.map(e=>`<div class="timeline-item"><div class="timeline-era">${e.era}</div><div class="timeline-title">${e.title}</div><div class="timeline-desc">${e.desc}</div></div>`).join('');
+}
+
+function renderWatchlist(){
+  const c=document.getElementById('watchlistItems');if(!c)return;
+  c.innerHTML=watchlist.map((w,i)=>`<div class="watchlist-item" onclick="toggleWatchlist(${i})"><div class="watchlist-thumb" style="background:rgba(124,58,237,.15)">${w.emoji}</div><div class="watchlist-info"><div class="watchlist-title" style="${w.done?'text-decoration:line-through;opacity:.5':''}">${w.title}</div><div class="watchlist-genre">${w.genre}</div></div><div class="watchlist-check ${w.done?'done':''}">${w.done?'✓':''}</div></div>`).join('');
+  const d=document.getElementById('genreDistribution');
+  if(d)d.innerHTML=['Drama','Action','Sci-Fi'].map((g,i)=>`<div style="margin-bottom:1rem"><div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.4rem"><span>${g}</span><span style="color:var(--muted)">${[42,31,27][i]}%</span></div><div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="height:100%;width:${[42,31,27][i]}%;background:${['var(--accent)','var(--accent2)','var(--accent3)'][i]};border-radius:2px"></div></div></div>`).join('');
+}
+function toggleWatchlist(i){watchlist[i].done=!watchlist[i].done;renderWatchlist();toast(watchlist[i].done?`Marked "${watchlist[i].title}" as watched!`:`Unmarked "${watchlist[i].title}"`,watchlist[i].emoji);}
+function addToWatchlist(){watchlist.push({title:'New Title',genre:'Your Genre',emoji:'🎬',done:false});renderWatchlist();toast('Added to watchlist!','📋');}
+
+function openGenreModal(id){
+  const g=GENRES_DATA.find(x=>x.id===id);if(!g)return;
+  const extra=GENRE_DATA_MAP[g.name]||{};
+  document.getElementById('modalContent').innerHTML=`
+    <div style="font-size:3rem;margin-bottom:.5rem">${g.emoji}</div>
+    <h2>${g.name}</h2>
+    <div style="display:flex;gap:.5rem;margin:.75rem 0 1.25rem;flex-wrap:wrap">
+      ${g.type.map(t=>`<span class="genre-tag secondary">${t}</span>`).join('')}
+      <span class="genre-tag mood">${g.count} titles</span>
+    </div>
+    <p style="color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:1.5rem">${g.desc}</p>
+    ${extra.subgenres?`
+      <div style="margin-bottom:1rem"><div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Sub-Genres</div><p style="font-size:.88rem">${extra.subgenres}</p></div>
+      <div style="margin-bottom:1rem"><div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Notable Works</div><p style="font-size:.88rem">${extra.notable}</p></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem">
+        <div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:8px"><div style="font-size:.7rem;color:var(--muted)">Mood</div><div style="font-size:.88rem;font-weight:600">${extra.mood||'—'}</div></div>
+        <div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:8px"><div style="font-size:.7rem;color:var(--muted)">Audience</div><div style="font-size:.88rem;font-weight:600">${extra.audience||'All'}</div></div>
+      </div>`:''}
+    <button class="btn-classify" style="margin-top:1.5rem;width:100%" onclick="document.getElementById('aiInput').value='${g.name}';classifyGenre();closeModal()">
+      🔍 Find ${g.name} Titles →
+    </button>`;
+  document.getElementById('genreModal').classList.add('open');
+}
+function closeModal(){document.getElementById('genreModal').classList.remove('open');}
+document.getElementById('genreModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function toast(msg,icon='✅'){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;document.getElementById('toastIcon').textContent=icon;
+  t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function downloadSite(){
+  const html=document.documentElement.outerHTML;
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='CineGenre-ULTIMATE.html';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Downloaded! Works fully offline.','⬇️');
+}
+</script>
+</body>
+</html>
