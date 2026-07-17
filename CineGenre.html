@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineGenre AI — Movie & Anime Genre Universe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;1,9..40,300&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root {
+    --bg: #060810;
+    --surface: #0d1117;
+    --card: #111827;
+    --card2: #161f30;
+    --accent: #e63e6d;
+    --accent2: #7c3aed;
+    --accent3: #06b6d4;
+    --accent4: #f59e0b;
+    --gold: #fbbf24;
+    --text: #f0f4ff;
+    --muted: #8892a4;
+    --border: rgba(255,255,255,0.07);
+    --glow: rgba(230,62,109,0.35);
+    --glow2: rgba(124,58,237,0.3);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* ─── 3D HERO CANVAS ─── */
+  #heroCanvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+  }
+  .hero-scene {
+    position: relative; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  /* ─── BG LAYERS ─── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(230,62,109,0.15) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(6,182,212,0.06) 0%, transparent 70%),
+      #060810;
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; animation: orbFloat 12s ease-in-out infinite; }
+  .orb1 { width: 500px; height: 500px; background: rgba(124,58,237,0.12); top: -150px; left: -100px; animation-delay: 0s; }
+  .orb2 { width: 400px; height: 400px; background: rgba(230,62,109,0.1); bottom: -100px; right: -100px; animation-delay: 4s; }
+  .orb3 { width: 300px; height: 300px; background: rgba(6,182,212,0.08); top: 40%; left: 40%; animation-delay: 8s; }
+  @keyframes orbFloat { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-40px) scale(1.05)} 66%{transform:translate(-20px,30px) scale(0.95)} }
+
+  .wrap { position: relative; z-index: 1; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(6,8,16,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border); padding: 0 2rem;
+  }
+  .nav-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 1rem; }
+  .logo { font-family: 'Orbitron', monospace; font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; text-decoration: none; flex-shrink: 0; }
+  .nav-links { display: flex; gap: 0.25rem; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; padding: 0.4rem 0.8rem; border-radius: 6px; transition: all 0.2s; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); background: var(--border); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+  .btn-nav { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; padding: 0.5rem 1.1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .btn-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow); }
+
+  /* ─── HERO ─── */
+  .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 6rem 2rem 4rem; position: relative; overflow: hidden; }
+  .hero-content { max-width: 900px; position: relative; z-index: 2; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.78rem; color: #a78bfa; margin-bottom: 2rem; letter-spacing: 1px; font-weight: 600; text-transform: uppercase; animation: fadeInDown 0.8s ease; }
+  .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #a78bfa; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @keyframes fadeInDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem, 10vw, 8rem); line-height: 0.9; letter-spacing: 2px; margin-bottom: 1.5rem; animation: fadeInUp 0.8s ease 0.2s both; }
+  .hero h1 .line1 { display: block; color: var(--text); }
+  .hero h1 .line2 { display: block; background: linear-gradient(135deg, var(--accent), var(--accent4), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero h1 .line3 { display: block; color: var(--accent3); }
+  .hero p { font-size: 1.1rem; color: var(--muted); max-width: 600px; margin: 0 auto 2.5rem; line-height: 1.7; animation: fadeInUp 0.8s ease 0.4s both; }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.6s both; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #c2185b); color: #fff; border: none; padding: 0.85rem 2rem; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 30px rgba(230,62,109,0.3); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(230,62,109,0.5); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0.85rem 2rem; border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.25s; backdrop-filter: blur(10px); }
+  .btn-secondary:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  .hero-stats { display: flex; gap: 3rem; justify-content: center; margin-top: 4rem; animation: fadeInUp 0.8s ease 0.8s both; }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Orbitron', monospace; font-size: 1.8rem; font-weight: 900; color: var(--accent); }
+  .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.25rem; }
+
+  /* ─── 3D FLOATING GENRE BADGES ─── */
+  .floating-badges {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1;
+  }
+  .float-badge {
+    position: absolute; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 100px; padding: 0.3rem 0.8rem; font-size: 0.72rem; font-weight: 600;
+    color: var(--muted); white-space: nowrap; backdrop-filter: blur(10px);
+    animation: floatBadge linear infinite;
+    opacity: 0;
+  }
+  @keyframes floatBadge {
+    0%   { transform: translateY(0) translateX(0) scale(0.8); opacity: 0; }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-120vh) translateX(var(--drift)) scale(1.1); opacity: 0; }
+  }
+
+  /* ─── SECTION ─── */
+  section { padding: 5rem 2rem; max-width: 1400px; margin: 0 auto; }
+  .section-header { text-align: center; margin-bottom: 3rem; }
+  .section-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--accent3); margin-bottom: 0.75rem; }
+  .section-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: 1px; line-height: 1.1; }
+  .section-header p { color: var(--muted); margin-top: 0.75rem; font-size: 0.95rem; }
+
+  /* ─── AI CLASSIFIER ─── */
+  .ai-box { background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(230,62,109,0.08)); border: 1px solid rgba(124,58,237,0.25); border-radius: 20px; padding: 2.5rem; position: relative; overflow: hidden; box-shadow: 0 0 60px rgba(124,58,237,0.1), inset 0 1px 0 rgba(255,255,255,0.05); }
+  .ai-box::before { content: ''; position: absolute; top: -1px; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--accent2), transparent); }
+  .ai-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .ai-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 0 20px rgba(124,58,237,0.4); }
+  .ai-header h3 { font-family: 'Orbitron', monospace; font-size: 1rem; font-weight: 700; }
+  .ai-header p { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+  .ai-textarea { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; resize: none; height: 120px; transition: border-color 0.2s; outline: none; }
+  .ai-textarea:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+  .ai-textarea::placeholder { color: var(--muted); }
+  .ai-controls { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+  .ai-select { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 1rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; outline: none; cursor: pointer; }
+  .btn-classify { background: linear-gradient(135deg, var(--accent2), var(--accent)); color: #fff; border: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+  .btn-classify:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow2); }
+  .btn-classify:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .ai-result { margin-top: 1.5rem; display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; animation: fadeInUp 0.4s ease; }
+  .ai-result.show { display: block; }
+  .result-genres { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .genre-tag { padding: 0.3rem 0.75rem; border-radius: 100px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.5px; }
+  .genre-tag.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .genre-tag.secondary { background: rgba(6,182,212,0.15); color: var(--accent3); border: 1px solid rgba(6,182,212,0.3); }
+  .genre-tag.mood { background: rgba(245,158,11,0.15); color: var(--accent4); border: 1px solid rgba(245,158,11,0.3); }
+  .result-analysis { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+  .result-confidence { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; }
+  .conf-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 2px; transition: width 1s ease; }
+  .conf-label { font-size: 0.75rem; color: var(--muted); }
+  .conf-pct { font-family: 'Orbitron', monospace; font-size: 0.78rem; color: var(--accent); }
+  .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 0.75rem 0; }
+  .typing-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: typingBounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+  /* ─── GENRE UNIVERSE ─── */
+  .genre-universe { padding: 5rem 2rem; }
+  .genre-universe-inner { max-width: 1400px; margin: 0 auto; }
+  .category-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+  .tab-btn { padding: 0.5rem 1.1rem; border-radius: 100px; font-size: 0.82rem; font-weight: 600; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .tab-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .tab-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; box-shadow: 0 0 20px var(--glow); }
+  .genre-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+
+  /* ─── SEARCH ─── */
+  .search-bar-wrap { position: relative; max-width: 600px; margin: 0 auto 3rem; }
+  .search-bar { width: 100%; background: rgba(17,24,39,0.8); border: 1px solid var(--border); border-radius: 14px; padding: 0.9rem 1.25rem 0.9rem 3rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; transition: all 0.2s; backdrop-filter: blur(10px); }
+  .search-bar:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+  .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 1rem; }
+
+  /* ─── GENRE CARDS ─── */
+  .genre-card { position: relative; border-radius: 16px; padding: 1.5rem 1.25rem; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: all 0.3s; overflow: hidden; }
+  .genre-card::before { content: ''; position: absolute; inset: 0; border-radius: 16px; opacity: 0; transition: opacity 0.3s; }
+  .genre-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.15); }
+  .genre-card:hover::before { opacity: 1; }
+  .genre-card:hover .genre-card-glow { opacity: 1; }
+  .genre-card-glow { position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; filter: blur(30px); opacity: 0; transition: opacity 0.3s; }
+  .genre-emoji { font-size: 2rem; margin-bottom: 0.75rem; display: block; }
+  .genre-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem; }
+  .genre-count { font-size: 0.75rem; color: var(--muted); }
+  .genre-pill { position: absolute; top: 0.75rem; right: 0.75rem; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.2rem 0.5rem; border-radius: 100px; }
+  .gc-red { background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(230,62,109,0.05)); }
+  .gc-red:hover { box-shadow: 0 10px 40px rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.3); }
+  .gc-red .genre-card-glow { background: rgba(239,68,68,0.4); }
+  .gc-blue { background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(6,182,212,0.05)); }
+  .gc-blue:hover { box-shadow: 0 10px 40px rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.3); }
+  .gc-blue .genre-card-glow { background: rgba(59,130,246,0.4); }
+  .gc-purple { background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(168,85,247,0.05)); }
+  .gc-purple:hover { box-shadow: 0 10px 40px rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.3); }
+  .gc-purple .genre-card-glow { background: rgba(124,58,237,0.4); }
+  .gc-green { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(52,211,153,0.05)); }
+  .gc-green:hover { box-shadow: 0 10px 40px rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.3); }
+  .gc-green .genre-card-glow { background: rgba(16,185,129,0.4); }
+  .gc-yellow { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(251,191,36,0.05)); }
+  .gc-yellow:hover { box-shadow: 0 10px 40px rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.3); }
+  .gc-yellow .genre-card-glow { background: rgba(245,158,11,0.4); }
+  .gc-pink { background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(244,114,182,0.05)); }
+  .gc-pink:hover { box-shadow: 0 10px 40px rgba(236,72,153,0.2); border-color: rgba(236,72,153,0.3); }
+  .gc-pink .genre-card-glow { background: rgba(236,72,153,0.4); }
+  .gc-orange { background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(251,146,60,0.05)); }
+  .gc-orange:hover { box-shadow: 0 10px 40px rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.3); }
+  .gc-orange .genre-card-glow { background: rgba(249,115,22,0.4); }
+  .gc-cyan { background: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(34,211,238,0.05)); }
+  .gc-cyan:hover { box-shadow: 0 10px 40px rgba(6,182,212,0.2); border-color: rgba(6,182,212,0.3); }
+  .gc-cyan .genre-card-glow { background: rgba(6,182,212,0.4); }
+
+  /* ─── SERIES ─── */
+  .series-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+  .series-card { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--card); transition: all 0.3s; cursor: pointer; position: relative; }
+  .series-card:hover { transform: translateY(-5px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.12); }
+  .series-banner { height: 140px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+  .series-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, rgba(17,24,39,0.95) 100%); }
+  .series-info { padding: 1.1rem; }
+  .series-genres { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .series-genre-tag { font-size: 0.68rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .series-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+  .series-meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 0.75rem; align-items: center; }
+  .series-rating { color: var(--gold); font-weight: 700; }
+
+  /* ─── MOOD BOARD ─── */
+  .mood-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 1rem; }
+  .mood-card { border-radius: 14px; padding: 1.5rem 1rem; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+  .mood-card::after { content: ''; position: absolute; inset: 0; opacity: 0.05; border-radius: 14px; transition: opacity 0.3s; }
+  .mood-card:hover::after { opacity: 0.12; }
+  .mood-card:hover { transform: scale(1.04); }
+  .mood-emoji { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+  .mood-label { font-weight: 700; font-size: 0.88rem; }
+  .mood-desc { font-size: 0.73rem; color: var(--muted); margin-top: 0.25rem; line-height: 1.4; }
+
+  /* ─── FILTERS ─── */
+  .filter-panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; margin-bottom: 2rem; }
+  .filter-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+  .filter-group { flex: 1; min-width: 140px; }
+  .filter-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 600; }
+  .filter-select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.9rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; outline: none; }
+  .filter-select:focus { border-color: var(--accent2); }
+
+  /* ─── TIMELINE ─── */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--accent2), var(--accent), transparent); }
+  .timeline-item { position: relative; margin-bottom: 2rem; padding-left: 1.5rem; }
+  .timeline-item::before { content: ''; position: absolute; left: -2.4rem; top: 0.4rem; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); box-shadow: 0 0 10px var(--glow); }
+  .timeline-era { font-family: 'Orbitron', monospace; font-size: 0.78rem; color: var(--accent3); margin-bottom: 0.5rem; }
+  .timeline-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+  .timeline-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  /* ─── QUIZ ─── */
+  .quiz-box { background: var(--card2); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem; max-width: 700px; margin: 0 auto; }
+  .quiz-progress { display: flex; gap: 0.4rem; margin-bottom: 2rem; }
+  .quiz-step { flex: 1; height: 3px; border-radius: 100px; background: rgba(255,255,255,0.08); transition: background 0.3s; }
+  .quiz-step.done { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .quiz-q { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; }
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .quiz-option { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; cursor: pointer; transition: all 0.2s; font-size: 0.88rem; text-align: left; }
+  .quiz-option:hover { border-color: var(--accent2); background: rgba(124,58,237,0.1); }
+  .quiz-option.selected { border-color: var(--accent); background: rgba(230,62,109,0.12); }
+  .quiz-result-card { text-align: center; padding: 2rem; display: none; animation: fadeInUp 0.5s ease; }
+  .quiz-result-card.show { display: block; }
+  .quiz-result-emoji { font-size: 4rem; margin-bottom: 1rem; display: block; }
+  .quiz-result-title { font-family: 'Bebas Neue'; font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .quiz-result-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+
+  /* ─── COMPARE ─── */
+  .compare-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: start; }
+  .compare-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
+  .vs-divider { display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue'; font-size: 2rem; color: var(--accent); padding: 2rem 0; }
+  .compare-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+  .compare-row:last-child { border: none; }
+  .compare-label { font-size: 0.78rem; color: var(--muted); }
+  .compare-value { font-size: 0.85rem; font-weight: 600; }
+
+  /* ─── STATS ─── */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; text-align: center; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .stat-card-num { font-family: 'Orbitron', monospace; font-size: 2.2rem; font-weight: 900; }
+  .stat-card-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
+  .stat-card-change { font-size: 0.75rem; color: #10b981; margin-top: 0.25rem; }
+
+  /* ─── CHART ─── */
+  .chart-bars { display: flex; gap: 0.5rem; align-items: flex-end; height: 200px; margin-top: 1rem; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+  .chart-bar { width: 100%; border-radius: 6px 6px 0 0; background: linear-gradient(to top, var(--accent2), var(--accent)); transition: height 1s ease; min-height: 4px; position: relative; cursor: pointer; }
+  .chart-bar:hover { filter: brightness(1.2); }
+  .chart-bar-label { font-size: 0.65rem; color: var(--muted); text-align: center; }
+  .chart-bar-val { font-size: 0.7rem; font-weight: 700; color: var(--accent); }
+
+  /* ─── WATCHLIST ─── */
+  .watchlist-panel { background: var(--card2); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
+  .watchlist-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); transition: all 0.2s; cursor: pointer; }
+  .watchlist-item:hover { background: rgba(255,255,255,0.02); border-radius: 8px; }
+  .watchlist-item:last-child { border: none; }
+  .watchlist-thumb { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+  .watchlist-info { flex: 1; }
+  .watchlist-title { font-size: 0.88rem; font-weight: 600; }
+  .watchlist-genre { font-size: 0.72rem; color: var(--muted); }
+  .watchlist-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+  .watchlist-check.done { background: #10b981; border-color: #10b981; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 2rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; max-width: 600px; width: 100%; position: relative; animation: fadeInUp 0.3s ease; max-height: 80vh; overflow-y: auto; }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.08); border: none; color: var(--muted); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+  .modal-close:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+  .modal h2 { font-family: 'Bebas Neue'; font-size: 2rem; margin-bottom: 0.75rem; }
+
+  /* ─── FOOTER ─── */
+  footer { border-top: 1px solid var(--border); padding: 3rem 2rem 2rem; position: relative; z-index: 1; }
+  .footer-inner { max-width: 1400px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+  .footer-brand .logo { font-size: 1.1rem; display: inline-block; margin-bottom: 0.75rem; }
+  .footer-brand p { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+  .footer-col h4 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 1rem; }
+  .footer-col a { display: block; color: var(--muted); text-decoration: none; font-size: 0.85rem; margin-bottom: 0.5rem; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--text); }
+  .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 2rem; border-top: 1px solid var(--border); }
+  .footer-bottom p { font-size: 0.78rem; color: var(--muted); }
+
+  /* ─── TOAST ─── */
+  .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.88rem; box-shadow: 0 10px 40px rgba(0,0,0,0.4); transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); max-width: 320px; }
+  .toast.show { transform: translateX(0); }
+  .toast-icon { font-size: 1.2rem; }
+
+  /* ─── UTILITY ─── */
+  .divider { height: 1px; background: var(--border); margin: 0; }
+  .text-accent { color: var(--accent); }
+  .text-accent2 { color: var(--accent2); }
+  .text-accent3 { color: var(--accent3); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .scroll-top { position: fixed; bottom: 2rem; left: 2rem; z-index: 200; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 20px var(--glow); display: none; align-items: center; justify-content: center; transition: all 0.3s; }
+  .scroll-top.show { display: flex; }
+  .scroll-top:hover { transform: scale(1.1); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero-stats { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .vs-divider { padding: 0.5rem 0; }
+    .quiz-options { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  /* ─── SKELETON ─── */
+  .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; border-radius: 8px; animation: shimmer 1.5s infinite; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* ─── 3D UNIVERSE SECTION ─── */
+  .universe-section {
+    padding: 5rem 2rem;
+    text-align: center;
+  }
+  #universeCanvas {
+    width: 100%;
+    height: 500px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: #02030a;
+    display: block;
+    cursor: grab;
+    box-shadow: 0 0 80px rgba(124,58,237,0.15), 0 0 40px rgba(230,62,109,0.08);
+  }
+  #universeCanvas:active { cursor: grabbing; }
+  .universe-hint {
+    font-size: 0.78rem; color: var(--muted); margin-top: 1rem;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">CINEGENRE</a>
+    <div class="nav-links">
+      <a href="#genres" class="nav-link">Genres</a>
+      <a href="#ai" class="nav-link">AI Classify</a>
+      <a href="#universe3d" class="nav-link">3D Universe</a>
+      <a href="#series" class="nav-link">Series</a>
+      <a href="#anime" class="nav-link">Anime</a>
+      <a href="#quiz" class="nav-link">Quiz</a>
+      <a href="#compare" class="nav-link">Compare</a>
+    </div>
+    <div class="nav-right">
+      <button class="btn-nav" onclick="downloadSite()">⬇ Download</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- HERO with Three.js background -->
+<div class="hero" id="heroSection">
+  <canvas id="heroCanvas"></canvas>
+  <div class="floating-badges" id="floatingBadges"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span>AI-Powered Genre Intelligence</div>
+    <h1>
+      <span class="line1">EXPLORE EVERY</span>
+      <span class="line2">CINEMATIC</span>
+      <span class="line3">UNIVERSE</span>
+    </h1>
+    <p>The most comprehensive genre classification system for movies, TV series, and anime. Powered by AI, built for obsessives.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('ai').scrollIntoView({behavior:'smooth'})">🤖 Try AI Classifier</button>
+      <button class="btn-secondary" onclick="document.getElementById('universe3d').scrollIntoView({behavior:'smooth'})">🌌 3D Universe →</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="cnt1">0</div><div class="stat-label">Genres</div></div>
+      <div class="stat"><div class="stat-num" id="cnt2">0</div><div class="stat-label">Sub-Genres</div></div>
+      <div class="stat"><div class="stat-num" id="cnt3">0</div><div class="stat-label">Titles</div></div>
+      <div class="stat"><div class="stat-num" id="cnt4">0</div><div class="stat-label">Moods</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI CLASSIFIER -->
+<section id="ai">
+  <div class="section-header">
+    <span class="section-tag">⚡ Powered by Claude AI</span>
+    <h2>AI Genre <span class="text-accent">Classifier</span></h2>
+    <p>Describe any movie, show, or anime. Our AI identifies genres, mood, tone, and themes instantly.</p>
+  </div>
+  <div class="ai-box">
+    <div class="ai-header">
+      <div class="ai-icon">🧠</div>
+      <div>
+        <h3>CineGenre Intelligence</h3>
+        <p>Claude AI · Multi-genre analysis · Mood detection</p>
+      </div>
+    </div>
+    <textarea class="ai-textarea" id="aiInput" placeholder="Describe a movie or show... e.g. 'A group of high school friends discover they have supernatural powers and must protect their small town from inter-dimensional monsters. Mix of coming-of-age drama and creature horror with 80s nostalgia.'"></textarea>
+    <div class="ai-controls">
+      <select class="ai-select" id="aiType">
+        <option value="any">Any Type</option>
+        <option value="movie">Movie</option>
+        <option value="series">TV Series</option>
+        <option value="anime">Anime</option>
+        <option value="documentary">Documentary</option>
+        <option value="miniseries">Mini-Series</option>
+      </select>
+      <select class="ai-select" id="aiDetail">
+        <option value="standard">Standard Analysis</option>
+        <option value="deep">Deep Analysis</option>
+        <option value="simple">Simple Tags Only</option>
+      </select>
+      <button class="btn-classify" id="classifyBtn" onclick="classifyGenre()">
+        <span id="classifyBtnText">🎬 Classify Genre</span>
+      </button>
+      <button class="btn-classify" style="background:rgba(255,255,255,0.08);color:var(--muted);border:1px solid var(--border);" onclick="clearAI()">Clear</button>
+    </div>
+    <div class="ai-result" id="aiResult">
+      <div id="aiResultContent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3D UNIVERSE -->
+<div class="universe-section" id="universe3d">
+  <div class="section-header">
+    <span class="section-tag">🌌 Interactive 3D</span>
+    <h2>The Genre <span class="text-accent2">Universe</span></h2>
+    <p>Explore every genre as a living constellation. Drag to rotate, scroll to zoom.</p>
+  </div>
+  <canvas id="universeCanvas"></canvas>
+  <p class="universe-hint">🖱️ Drag to rotate · Scroll to zoom · Hover nodes to explore</p>
+</div>
+
+<!-- GENRE UNIVERSE -->
+<section id="genres" style="padding-top:0;">
+  <div class="section-header">
+    <span class="section-tag">🎭 Complete Library</span>
+    <h2>Genre <span class="text-accent2">Universe</span></h2>
+    <p>Every genre, sub-genre, and niche category across all formats</p>
+  </div>
+  <div class="search-bar-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-bar" id="genreSearch" placeholder="Search genres..." oninput="filterGenres(this.value)">
+  </div>
+  <div class="category-tabs" id="categoryTabs">
+    <button class="tab-btn active" onclick="switchTab('all',this)">All Genres</button>
+    <button class="tab-btn" onclick="switchTab('movie',this)">🎬 Movies</button>
+    <button class="tab-btn" onclick="switchTab('series',this)">📺 TV Series</button>
+    <button class="tab-btn" onclick="switchTab('anime',this)">🌸 Anime</button>
+    <button class="tab-btn" onclick="switchTab('documentary',this)">🎤 Documentary</button>
+    <button class="tab-btn" onclick="switchTab('animation',this)">🎨 Animation</button>
+  </div>
+  <div id="genreGrid" class="genre-grid"></div>
+</section>
+
+<!-- FEATURED SERIES -->
+<section id="series" style="background:rgba(17,24,39,0.4);border-radius:24px;padding:3rem 2rem;margin-bottom:3rem;">
+  <div class="section-header">
+    <span class="section-tag">📺 Top Picks</span>
+    <h2>Must-Watch <span class="text-accent">Series</span></h2>
+    <p>Iconic shows across every genre</p>
+  </div>
+  <div class="filter-panel">
+    <div class="filter-row">
+      <div class="filter-group">
+        <div class="filter-label">Genre</div>
+        <select class="filter-select" id="filterGenre" onchange="filterSeries()">
+          <option value="">All Genres</option>
+          <option>Drama</option><option>Thriller</option><option>Sci-Fi</option>
+          <option>Fantasy</option><option>Crime</option><option>Horror</option>
+          <option>Comedy</option><option>Action</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Platform</div>
+        <select class="filter-select" id="filterPlatform" onchange="filterSeries()">
+          <option value="">All Platforms</option>
+          <option>Netflix</option><option>HBO</option><option>Amazon</option>
+          <option>Apple TV+</option><option>Disney+</option><option>Hulu</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Era</div>
+        <select class="filter-select" id="filterEra" onchange="filterSeries()">
+          <option value="">All Eras</option>
+          <option>2020s</option><option>2010s</option><option>2000s</option><option>90s</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Sort By</div>
+        <select class="filter-select" id="filterSort" onchange="filterSeries()">
+          <option>Rating</option><option>Newest</option><option>Title A-Z</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="series-grid" id="seriesGrid"></div>
+</section>
+
+<!-- ANIME SECTION -->
+<section id="anime">
+  <div class="section-header">
+    <span class="section-tag">🌸 Anime Universe</span>
+    <h2>Anime <span class="text-accent2">Genre</span> Guide</h2>
+    <p>From shonen to josei — every anime genre classification</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <h3 style="margin-bottom:1.25rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">By Demographic</h3>
+      <div id="animeDemoGrid" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
+    </div>
+    <div>
+      <h3 style="margin-bottom:1.25rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">By Theme</h3>
+      <div id="animeThemeGrid" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
+    </div>
+  </div>
+  <div style="margin-top:2.5rem;">
+    <h3 style="margin-bottom:1.25rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Top Anime Series</h3>
+    <div class="series-grid" id="animeGrid"></div>
+  </div>
+</section>
+
+<!-- MOOD BOARD -->
+<section style="padding-top:0;">
+  <div class="section-header">
+    <span class="section-tag">✨ Find By Feeling</span>
+    <h2>Watch By <span class="text-accent3">Mood</span></h2>
+    <p>Not sure what to watch? Pick how you feel.</p>
+  </div>
+  <div class="mood-grid" id="moodGrid"></div>
+</section>
+
+<!-- GENRE QUIZ -->
+<section id="quiz" style="background:rgba(124,58,237,0.05);border-radius:24px;padding:3rem 2rem;">
+  <div class="section-header">
+    <span class="section-tag">🎯 Genre Discovery</span>
+    <h2>Find Your <span class="text-accent">Genre</span></h2>
+    <p>Answer 5 quick questions to discover your perfect genre match</p>
+  </div>
+  <div class="quiz-box" id="quizBox">
+    <div class="quiz-progress" id="quizProgress"></div>
+    <div id="quizContent"></div>
+  </div>
+</section>
+
+<!-- COMPARE GENRES -->
+<section id="compare">
+  <div class="section-header">
+    <span class="section-tag">⚖️ Genre Analysis</span>
+    <h2>Compare <span class="text-accent2">Genres</span></h2>
+    <p>Side-by-side genre breakdown</p>
+  </div>
+  <div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;justify-content:center;">
+    <select class="ai-select" id="compare1" onchange="renderCompare()">
+      <option>Action</option><option>Drama</option><option>Comedy</option><option>Thriller</option>
+      <option>Sci-Fi</option><option>Horror</option><option>Fantasy</option><option>Romance</option>
+      <option>Crime</option><option>Mystery</option><option>Animation</option><option>Documentary</option>
+    </select>
+    <select class="ai-select" id="compare2" onchange="renderCompare()">
+      <option>Sci-Fi</option><option>Action</option><option>Drama</option><option>Comedy</option>
+      <option>Thriller</option><option>Horror</option><option>Fantasy</option><option>Romance</option>
+      <option>Crime</option><option>Mystery</option><option>Animation</option><option>Documentary</option>
+    </select>
+  </div>
+  <div class="compare-grid" id="compareGrid"></div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="section-header">
+    <span class="section-tag">📊 Industry Data</span>
+    <h2>Genre <span class="text-accent">Statistics</span></h2>
+    <p>Genre popularity and production trends</p>
+  </div>
+  <div class="stats-grid" id="statsGrid"></div>
+  <div style="margin-top:2rem;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;">
+    <h3 style="font-size:1rem;margin-bottom:0.5rem;">Genre Popularity by Decade</h3>
+    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.5rem;">Production volume index</p>
+    <div class="chart-bars" id="chartBars"></div>
+  </div>
+</section>
+
+<!-- WATCHLIST -->
+<section>
+  <div class="section-header">
+    <span class="section-tag">📋 Your List</span>
+    <h2>My <span class="text-accent3">Watchlist</span></h2>
+    <p>Track what you've seen and what's next</p>
+  </div>
+  <div class="grid-2">
+    <div class="watchlist-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h3 style="font-size:0.95rem;">To Watch</h3>
+        <button class="btn-classify" onclick="addToWatchlist()" style="font-size:0.78rem;padding:0.4rem 0.9rem;">+ Add</button>
+      </div>
+      <div id="watchlistItems"></div>
+    </div>
+    <div>
+      <div class="watchlist-panel">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">Genre Distribution</h3>
+        <div id="genreDistribution"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section style="padding-top:0;">
+  <div class="section-header">
+    <span class="section-tag">📅 History</span>
+    <h2>Genre <span class="text-accent2">Evolution</span></h2>
+    <p>How cinema genres evolved over the decades</p>
+  </div>
+  <div class="timeline" id="timeline"></div>
+</section>
+
+</div><!-- /wrap -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span class="logo">CINEGENRE</span>
+        <p>The ultimate genre classification platform for movies, TV series, and anime. AI-powered analysis for every viewer.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Genres</h4>
+        <a href="#">Action</a><a href="#">Drama</a><a href="#">Sci-Fi</a>
+        <a href="#">Horror</a><a href="#">Comedy</a><a href="#">Anime</a>
+      </div>
+      <div class="footer-col">
+        <h4>Tools</h4>
+        <a href="#">AI Classifier</a><a href="#">Genre Quiz</a><a href="#">Compare</a>
+        <a href="#">Watchlist</a><a href="#">Stats</a>
+      </div>
+      <div class="footer-col">
+        <h4>Info</h4>
+        <a href="#">About</a><a href="#">API</a><a href="#">Blog</a>
+        <a href="#">Privacy</a><a href="#">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 CineGenre AI. All rights reserved.</p>
+      <p style="color:var(--muted);">Built with ❤️ for cinephiles everywhere</p>
+    </div>
+  </div>
+</footer>
+
+<!-- SCROLL TOP -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon">✅</span>
+  <span id="toastMsg">Done!</span>
+</div>
+
+<!-- GENRE DETAIL MODAL -->
+<div class="modal-overlay" id="genreModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+const GENRES = [
+  {id:'action',name:'Action',emoji:'💥',color:'gc-red',type:['movie','series'],count:'12,400+',desc:'High-octane sequences, physical stunts, and combat'},
+  {id:'drama',name:'Drama',emoji:'🎭',color:'gc-blue',type:['movie','series'],count:'28,000+',desc:'Character-driven emotional narratives'},
+  {id:'comedy',name:'Comedy',emoji:'😂',color:'gc-yellow',type:['movie','series','anime'],count:'18,500+',desc:'Humor, wit, and lighthearted entertainment'},
+  {id:'thriller',name:'Thriller',emoji:'😰',color:'gc-purple',type:['movie','series'],count:'9,800+',desc:'Suspense, tension, and psychological intensity'},
+  {id:'horror',name:'Horror',emoji:'👻',color:'gc-red',type:['movie','series','anime'],count:'7,200+',desc:'Fear, dread, and supernatural terror'},
+  {id:'scifi',name:'Sci-Fi',emoji:'🚀',color:'gc-cyan',type:['movie','series','anime'],count:'6,100+',desc:'Futuristic technology, space, and science speculation'},
+  {id:'fantasy',name:'Fantasy',emoji:'🧙',color:'gc-purple',type:['movie','series','anime'],count:'8,700+',desc:'Magic, mythical creatures, and otherworldly realms'},
+  {id:'romance',name:'Romance',emoji:'💕',color:'gc-pink',type:['movie','series','anime'],count:'14,300+',desc:'Love stories, relationships, and emotional connections'},
+  {id:'crime',name:'Crime',emoji:'🔫',color:'gc-red',type:['movie','series'],count:'8,900+',desc:'Criminal activity, investigations, and justice'},
+  {id:'mystery',name:'Mystery',emoji:'🔍',color:'gc-blue',type:['movie','series','anime'],count:'5,400+',desc:'Puzzles, secrets, and investigative narratives'},
+  {id:'adventure',name:'Adventure',emoji:'🗺️',color:'gc-green',type:['movie','series','anime'],count:'11,200+',desc:'Exploration, quests, and exciting journeys'},
+  {id:'animation',name:'Animation',emoji:'🎨',color:'gc-yellow',type:['animation'],count:'9,600+',desc:'Animated works spanning all genres and styles'},
+  {id:'documentary',name:'Documentary',emoji:'📹',color:'gc-green',type:['documentary'],count:'32,000+',desc:'Real-world subjects, journalism, and non-fiction'},
+  {id:'biography',name:'Biography',emoji:'👤',color:'gc-blue',type:['documentary','movie'],count:'4,200+',desc:'Real life stories of notable individuals'},
+  {id:'history',name:'Historical',emoji:'🏛️',color:'gc-orange',type:['movie','series'],count:'6,800+',desc:'Set in historical periods with period accuracy'},
+  {id:'western',name:'Western',emoji:'🤠',color:'gc-orange',type:['movie','series'],count:'3,100+',desc:'American frontier, cowboys, and gunfights'},
+  {id:'musical',name:'Musical',emoji:'🎵',color:'gc-pink',type:['movie','series'],count:'2,800+',desc:'Song-and-dance storytelling and performance'},
+  {id:'sports',name:'Sports',emoji:'⚽',color:'gc-green',type:['movie','series','documentary'],count:'4,400+',desc:'Athletic competition, training, and triumph'},
+  {id:'superhero',name:'Superhero',emoji:'🦸',color:'gc-purple',type:['movie','series','anime','animation'],count:'1,900+',desc:'Powered heroes, villains, and universe-building'},
+  {id:'war',name:'War',emoji:'⚔️',color:'gc-orange',type:['movie','series'],count:'5,100+',desc:'Military conflict, battlefield drama, and strategy'},
+  {id:'shonen',name:'Shōnen',emoji:'⚡',color:'gc-orange',type:['anime'],count:'4,200+',desc:'Action-oriented anime for young male audiences',pill:'Anime'},
+  {id:'shojo',name:'Shōjo',emoji:'🌸',color:'gc-pink',type:['anime'],count:'2,800+',desc:'Romance and emotion-focused anime for young women',pill:'Anime'},
+  {id:'seinen',name:'Seinen',emoji:'🖤',color:'gc-red',type:['anime'],count:'3,100+',desc:'Mature themes aimed at adult male audiences',pill:'Anime'},
+  {id:'josei',name:'Josei',emoji:'💜',color:'gc-purple',type:['anime'],count:'900+',desc:'Realistic romance for adult women',pill:'Anime'},
+  {id:'isekai',name:'Isekai',emoji:'🌀',color:'gc-cyan',type:['anime'],count:'2,200+',desc:'Transported to another world narratives',pill:'Anime'},
+  {id:'mecha',name:'Mecha',emoji:'🤖',color:'gc-blue',type:['anime'],count:'800+',desc:'Giant robots and mechanical warfare',pill:'Anime'},
+  {id:'slice',name:'Slice of Life',emoji:'☕',color:'gc-green',type:['anime'],count:'3,400+',desc:'Everyday mundane life with heartfelt moments',pill:'Anime'},
+  {id:'psychological',name:'Psychological',emoji:'🧠',color:'gc-purple',type:['movie','series','anime'],count:'4,300+',desc:'Mind games, mental health, and perception'},
+  {id:'cyberpunk',name:'Cyberpunk',emoji:'🌆',color:'gc-cyan',type:['movie','series','anime'],count:'800+',desc:'High tech, low life dystopian futures'},
+  {id:'noir',name:'Film Noir',emoji:'🌧️',color:'gc-blue',type:['movie','series'],count:'2,900+',desc:'Dark, cynical crime stories with moral ambiguity'},
+  {id:'surreal',name:'Surreal',emoji:'🌊',color:'gc-purple',type:['movie','series','anime'],count:'1,400+',desc:'Dream logic, absurdism, and reality distortion'},
+  {id:'true-crime',name:'True Crime',emoji:'🔪',color:'gc-red',type:['documentary','series'],count:'4,800+',desc:'Real criminal cases, investigations, and justice'},
+];
+
+const GENRE_DATA_MAP = {
+  Action:    {mood:'High Energy',pacing:'Fast',audience:'18–35M',avgLen:'120 min',subgenres:'Martial Arts, Military, Superhero, Heist',notable:'Top Gun, Mad Max, John Wick'},
+  Drama:     {mood:'Emotional',pacing:'Moderate',audience:'25–55F',avgLen:'115 min',subgenres:'Historical, Legal, Medical, Family',notable:"The Godfather, Schindler's List"},
+  Comedy:    {mood:'Light',pacing:'Varied',audience:'All ages',avgLen:'95 min',subgenres:'Romantic, Dark, Slapstick, Satire',notable:'Some Like It Hot, Superbad'},
+  Thriller:  {mood:'Tense',pacing:'Fast',audience:'20–45M',avgLen:'118 min',subgenres:'Psychological, Legal, Espionage, Neo-noir',notable:'Silence of the Lambs, Se7en'},
+  'Sci-Fi':  {mood:'Cerebral',pacing:'Varied',audience:'20–40M',avgLen:'125 min',subgenres:'Space Opera, Cyberpunk, Time Travel, Biopunk',notable:'2001, Blade Runner, Dune'},
+  Horror:    {mood:'Fearful',pacing:'Slow–Fast',audience:'18–30',avgLen:'100 min',subgenres:'Slasher, Supernatural, Psychological, Found Footage',notable:'The Shining, Get Out'},
+  Fantasy:   {mood:'Wonder',pacing:'Epic',audience:'All ages',avgLen:'130 min',subgenres:'High Fantasy, Urban Fantasy, Dark Fantasy, Fairy Tale',notable:'LOTR, Harry Potter'},
+  Romance:   {mood:'Warm',pacing:'Slow',audience:'25–45F',avgLen:'105 min',subgenres:'Romantic Comedy, Historical, Paranormal',notable:'Pride & Prejudice, La La Land'},
+  Crime:     {mood:'Gritty',pacing:'Methodical',audience:'25–50M',avgLen:'120 min',subgenres:'Heist, Gangster, Police Procedural, Neo-Noir',notable:'The Godfather, Heat'},
+  Mystery:   {mood:'Curious',pacing:'Slow',audience:'30–60',avgLen:'110 min',subgenres:'Cozy, Detective, Whodunit, Locked Room',notable:'Agatha Christie adaptations'},
+  Animation: {mood:'Varied',pacing:'Varied',audience:'All ages',avgLen:'90 min',subgenres:'CGI, Hand-drawn, Stop Motion, 2D',notable:'Toy Story, Spirited Away'},
+  Documentary:{mood:'Informative',pacing:'Varied',audience:'30–65',avgLen:'95 min',subgenres:'Nature, True Crime, Political, Sports',notable:'Planet Earth, Making a Murderer'},
+};
+
+const SERIES_DATA = [
+  {title:'Breaking Bad',genre:'Crime Drama',platform:'Netflix',year:'2008',rating:'9.5',emoji:'⚗️',color:'#065f46',tags:['Crime','Drama','Thriller']},
+  {title:'Game of Thrones',genre:'Fantasy Drama',platform:'HBO',year:'2011',rating:'9.3',emoji:'🐉',color:'#1e1b4b',tags:['Fantasy','Drama','Action']},
+  {title:'Stranger Things',genre:'Sci-Fi Horror',platform:'Netflix',year:'2016',rating:'8.7',emoji:'🔦',color:'#1a0f3c',tags:['Sci-Fi','Horror','Drama']},
+  {title:'The Wire',genre:'Crime Drama',platform:'HBO',year:'2002',rating:'9.3',emoji:'📻',color:'#1c1917',tags:['Crime','Drama']},
+  {title:'Succession',genre:'Drama Thriller',platform:'HBO',year:'2018',rating:'8.9',emoji:'💼',color:'#1c1917',tags:['Drama','Thriller','Comedy']},
+  {title:'Dark',genre:'Sci-Fi Mystery',platform:'Netflix',year:'2017',rating:'8.8',emoji:'⏳',color:'#0f172a',tags:['Sci-Fi','Mystery','Thriller']},
+  {title:'The Boys',genre:'Superhero Satire',platform:'Amazon',year:'2019',rating:'8.7',emoji:'🦸',color:'#3b0000',tags:['Superhero','Action','Comedy']},
+  {title:'The Mandalorian',genre:'Sci-Fi Western',platform:'Disney+',year:'2019',rating:'8.7',emoji:'⚔️',color:'#1a1006',tags:['Sci-Fi','Action','Western']},
+];
+
+const ANIME_DATA = [
+  {title:'Attack on Titan',genre:'Dark Fantasy',platform:'Crunchyroll',year:'2013',rating:'9.0',emoji:'⚔️',color:'#3d0000',tags:['Action','Drama','Shōnen']},
+  {title:'Death Note',genre:'Psychological Thriller',platform:'Netflix',year:'2006',rating:'9.0',emoji:'📓',color:'#0d0d0d',tags:['Thriller','Mystery','Seinen']},
+  {title:'Fullmetal Alchemist',genre:'Action Adventure',platform:'Crunchyroll',year:'2009',rating:'9.1',emoji:'⚗️',color:'#4d2600',tags:['Action','Fantasy','Shōnen']},
+  {title:'Your Name',genre:'Romance Fantasy',platform:'Prime',year:'2016',rating:'8.9',emoji:'🌟',color:'#1a0033',tags:['Romance','Fantasy']},
+  {title:'Steins;Gate',genre:'Sci-Fi Thriller',platform:'Crunchyroll',year:'2011',rating:'9.1',emoji:'⏱️',color:'#0a0f1f',tags:['Sci-Fi','Thriller','Drama']},
+  {title:'Demon Slayer',genre:'Action Fantasy',platform:'Crunchyroll',year:'2019',rating:'8.7',emoji:'🌊',color:'#1a0010',tags:['Action','Fantasy','Shōnen']},
+];
+
+const MOODS = [
+  {emoji:'😤',label:'Pumped Up',desc:'Need adrenaline & action',genres:['Action','Superhero','Thriller'],color:'#dc2626'},
+  {emoji:'😭',label:'Cry It Out',desc:'Want to feel deeply',genres:['Drama','Romance'],color:'#2563eb'},
+  {emoji:'😂',label:'Need Laughs',desc:'Just want to smile',genres:['Comedy','Animation'],color:'#d97706'},
+  {emoji:'😱',label:'Scared Thrilled',desc:'Love the fear feeling',genres:['Horror','Thriller'],color:'#7c3aed'},
+  {emoji:'🤔',label:'Mind Blown',desc:'Want my brain to work',genres:['Mystery','Sci-Fi','Psychological'],color:'#0891b2'},
+  {emoji:'🌟',label:'Inspired',desc:'Need motivation & hope',genres:['Biography','Sports','Drama'],color:'#059669'},
+  {emoji:'😌',label:'Chill Vibes',desc:'Relaxed & comfortable',genres:['Slice of Life','Comedy','Romance'],color:'#c2410c'},
+  {emoji:'🌌',label:'Lost in Worlds',desc:'Escape reality entirely',genres:['Fantasy','Sci-Fi','Anime'],color:'#6d28d9'},
+];
+
+const ANIME_DEMO = [
+  {key:'Shōnen',desc:'Young male, 12–18',emoji:'⚡',color:'#f97316',examples:'Naruto, DBZ, Demon Slayer'},
+  {key:'Shōjo',desc:'Young female, 12–18',emoji:'🌸',color:'#ec4899',examples:'Sailor Moon, Fruits Basket'},
+  {key:'Seinen',desc:'Adult male, 18+',emoji:'🖤',color:'#ef4444',examples:'Berserk, Vinland Saga'},
+  {key:'Josei',desc:'Adult female, 18+',emoji:'💜',color:'#8b5cf6',examples:'Nana, Chihayafuru'},
+  {key:'Kodomomuke',desc:'Children, under 12',emoji:'🌟',color:'#fbbf24',examples:'Doraemon, Pokemon'},
+];
+
+const ANIME_THEMES = [
+  {key:'Isekai',emoji:'🌀',color:'#06b6d4',examples:'Re:Zero, That Time I Got Reincarnated'},
+  {key:'Mecha',emoji:'🤖',color:'#3b82f6',examples:'Evangelion, Code Geass'},
+  {key:'Slice of Life',emoji:'☕',color:'#10b981',examples:"K-On!, March Comes in like a Lion"},
+  {key:'Mahou Shoujo',emoji:'✨',color:'#fbbf24',examples:'Sailor Moon, Madoka'},
+  {key:'Sports',emoji:'🏃',color:'#f97316',examples:"Haikyuu!!, Kuroko's Basketball"},
+  {key:'Psychological',emoji:'🧠',color:'#7c3aed',examples:'Death Note, Monster'},
+];
+
+const QUIZ_QUESTIONS = [
+  {q:'What pace do you prefer?',opts:['Slow & deep','Fast & exciting','Balanced mix','Unpredictable']},
+  {q:'Pick a setting:',opts:['Future/Space','Historical past','Present day','Fantasy realm']},
+  {q:'Preferred emotional tone?',opts:['Dark & serious','Light & fun','Tense & anxious','Romantic & warm']},
+  {q:'What matters most?',opts:['Plot twists','Characters','Action sequences','World building']},
+  {q:'How do you want to feel after watching?',opts:['Thinking deeply','Laughing & happy','Scared/thrilled','Emotionally moved']},
+];
+
+const QUIZ_RESULTS = [
+  {emoji:'🧠',title:'PSYCHOLOGICAL THRILLER',desc:'You crave mental challenge, unpredictable twists, and deep character studies. Watch: Mindhunter, Dark, Black Swan'},
+  {emoji:'🚀',title:'SCI-FI EPIC',desc:'Cosmic wonder meets big ideas. You want worlds that expand your imagination. Watch: Interstellar, Dune, Arrival'},
+  {emoji:'😂',title:'DARK COMEDY',desc:'Wit with edge. You want laughs but with substance and sharp social commentary. Watch: Fleabag, What We Do in Shadows'},
+  {emoji:'⚔️',title:'ACTION ADVENTURE',desc:'Kinetic energy, heroic journeys, and spectacular set pieces. Watch: Mad Max, The Raid, Avengers'},
+  {emoji:'💕',title:'PRESTIGE DRAMA',desc:'Rich character work, emotional depth, and nuanced human stories. Watch: Normal People, The Americans'},
+  {emoji:'🌌',title:'DARK FANTASY',desc:'Magic meets darkness. You want epic worlds with moral complexity. Watch: Game of Thrones, The Witcher, Berserk'},
+];
+
+const CHART_DATA = [
+  {label:'50s',val:25},{label:'60s',val:35},{label:'70s',val:52},
+  {label:'80s',val:68},{label:'90s',val:74},{label:'00s',val:85},
+  {label:'10s',val:94},{label:'20s',val:100},
+];
+
+const TIMELINE_EVENTS = [
+  {era:'1890s–1920s',title:'Silent Era & Genre Birth',desc:'Cinema invents melodrama, slapstick comedy, and horror. The Cabinet of Dr. Caligari (1920) pioneers psychological horror.'},
+  {era:'1930s–1940s',title:'Golden Age Genres',desc:'Film noir, screwball comedy, and the musical flourish. The studio system codifies Western, crime, and gangster films.'},
+  {era:'1950s–1960s',title:'Science Fiction Explosion',desc:'Cold War anxiety spawns sci-fi genre. Italian westerns redefine the form. French New Wave disrupts genre conventions.'},
+  {era:'1970s',title:'New Hollywood & Genre Deconstruction',desc:'Auteurs subvert genres. The Godfather redefines crime drama. Jaws and Star Wars birth the blockbuster era.'},
+  {era:'1980s',title:'Blockbuster & Cable Era',desc:'Action genre explodes. Teen comedies emerge. Horror slasher subgenre peaks. MTV-style influences visual storytelling.'},
+  {era:'1990s',title:'Independent Renaissance',desc:'Sundance elevates indie drama. Pulp Fiction remixes crime. The Matrix redefines sci-fi aesthetics. Anime goes global.'},
+  {era:'2000s',title:'Superhero & Fantasy Dominance',desc:'MCU lays foundation. Peter Jackson proves fantasy viability. Prestige TV rises on HBO. Reality TV conquers broadcast.'},
+  {era:'2010s',title:'Streaming Revolution',desc:'Netflix original dramas shift power from studios. Korean cinema achieves global acclaim. Anime becomes mainstream worldwide.'},
+  {era:'2020s',title:'Genre Fusion & AI Era',desc:'Hybrid genres dominate. K-drama and anime merge with Western production. AI tools begin assisting genre classification and recommendation.'},
+];
+
+let quizAnswers = [];
+let quizQ = 0;
+let watchlist = [
+  {title:'Succession',genre:'Drama Thriller',emoji:'💼',done:false},
+  {title:'Attack on Titan',genre:'Action Shōnen',emoji:'⚔️',done:true},
+  {title:'Dune: Part Two',genre:'Sci-Fi Epic',emoji:'🏜️',done:false},
+  {title:'The Bear',genre:'Drama Comedy',emoji:'🍳',done:false},
+];
+let currentTab = 'all';
+
+// ═══════════════════════════════════════════════════
+// THREE.JS HERO BACKGROUND — Particle Field
+// ═══════════════════════════════════════════════════
+(function initHeroBg() {
+  const canvas = document.getElementById('heroCanvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  camera.position.z = 80;
+
+  // Particle system
+  const N = 1800;
+  const positions = new Float32Array(N * 3);
+  const colors = new Float32Array(N * 3);
+  const sizes = new Float32Array(N);
+  const palette = [
+    new THREE.Color('#e63e6d'),
+    new THREE.Color('#7c3aed'),
+    new THREE.Color('#06b6d4'),
+    new THREE.Color('#f59e0b'),
+    new THREE.Color('#a78bfa'),
+  ];
+  for (let i = 0; i < N; i++) {
+    positions[i*3]   = (Math.random() - 0.5) * 300;
+    positions[i*3+1] = (Math.random() - 0.5) * 300;
+    positions[i*3+2] = (Math.random() - 0.5) * 200;
+    const c = palette[Math.floor(Math.random() * palette.length)];
+    colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+    sizes[i] = Math.random() * 1.8 + 0.4;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  const mat = new THREE.PointsMaterial({ size: 0.9, vertexColors: true, transparent: true, opacity: 0.65, sizeAttenuation: true });
+  const particles = new THREE.Points(geo, mat);
+  scene.add(particles);
+
+  // Connection lines between nearby particles (subset)
+  const lineGeo = new THREE.BufferGeometry();
+  const lineVerts = [];
+  const subset = 300;
+  for (let i = 0; i < subset; i++) {
+    for (let j = i+1; j < subset; j++) {
+      const dx = positions[i*3] - positions[j*3];
+      const dy = positions[i*3+1] - positions[j*3+1];
+      const dz = positions[i*3+2] - positions[j*3+2];
+      const dist = Math.sqrt(dx*dx+dy*dy+dz*dz);
+      if (dist < 22) {
+        lineVerts.push(positions[i*3], positions[i*3+1], positions[i*3+2]);
+        lineVerts.push(positions[j*3], positions[j*3+1], positions[j*3+2]);
+      }
+    }
+  }
+  lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(lineVerts, 3));
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.08 });
+  scene.add(new THREE.LineSegments(lineGeo, lineMat));
+
+  function resize() {
+    const { clientWidth: w, clientHeight: h } = canvas;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
+  resize();
+
+  let t = 0;
+  (function animate() {
+    requestAnimationFrame(animate);
+    t += 0.0008;
+    particles.rotation.y = t * 0.3;
+    particles.rotation.x = t * 0.1;
+    mat.opacity = 0.55 + Math.sin(t * 2) * 0.1;
+    renderer.render(scene, camera);
+  })();
+})();
+
+// ═══════════════════════════════════════════════════
+// THREE.JS 3D UNIVERSE EXPLORER
+// ═══════════════════════════════════════════════════
+(function initUniverse() {
+  const canvas = document.getElementById('universeCanvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+  camera.position.set(0, 0, 120);
+
+  // Ambient + point lights
+  scene.add(new THREE.AmbientLight(0x111133, 2));
+  const pl1 = new THREE.PointLight(0xe63e6d, 3, 200);
+  pl1.position.set(60, 40, 60);
+  scene.add(pl1);
+  const pl2 = new THREE.PointLight(0x7c3aed, 3, 200);
+  pl2.position.set(-60, -40, -60);
+  scene.add(pl2);
+  const pl3 = new THREE.PointLight(0x06b6d4, 2, 150);
+  pl3.position.set(0, 80, 0);
+  scene.add(pl3);
+
+  // Genre node data
+  const nodeData = [
+    { name:'Action',    color:0xe63e6d, size:5.5, pos:[35,10,20] },
+    { name:'Drama',     color:0x3b82f6, size:6.5, pos:[-40,5,-10] },
+    { name:'Comedy',    color:0xf59e0b, size:5.0, pos:[10,40,-25] },
+    { name:'Thriller',  color:0x8b5cf6, size:4.8, pos:[-20,-35,15] },
+    { name:'Sci-Fi',    color:0x06b6d4, size:5.2, pos:[0,15,50] },
+    { name:'Horror',    color:0xef4444, size:4.2, pos:[-45,-10,25] },
+    { name:'Fantasy',   color:0xa855f7, size:5.8, pos:[20,-40,-30] },
+    { name:'Romance',   color:0xec4899, size:4.5, pos:[-10,45,10] },
+    { name:'Crime',     color:0xdc2626, size:4.3, pos:[50,-20,5] },
+    { name:'Anime',     color:0xf97316, size:5.0, pos:[-30,20,-45] },
+    { name:'Mystery',   color:0x0891b2, size:3.8, pos:[30,35,-40] },
+    { name:'Adventure', color:0x10b981, size:5.0, pos:[-55,15,10] },
+    { name:'Shōnen',    color:0xfbbf24, size:3.5, pos:[0,-55,0] },
+    { name:'Mecha',     color:0x60a5fa, size:3.2, pos:[55,30,-20] },
+    { name:'Isekai',    color:0x22d3ee, size:3.3, pos:[-15,-20,55] },
+  ];
+
+  const nodes = [];
+  const nodeMeshes = [];
+  const group = new THREE.Group();
+  scene.add(group);
+
+  // Create nodes as glowing spheres
+  nodeData.forEach(d => {
+    const geo = new THREE.SphereGeometry(d.size, 32, 32);
+    const mat = new THREE.MeshPhongMaterial({
+      color: d.color,
+      emissive: d.color,
+      emissiveIntensity: 0.35,
+      transparent: true,
+      opacity: 0.88,
+      shininess: 120,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(...d.pos);
+    mesh.userData = { name: d.name, color: d.color, baseEmissive: 0.35 };
+    group.add(mesh);
+    nodes.push(mesh);
+    nodeMeshes.push(mesh);
+
+    // Glow ring around each node
+    const ringGeo = new THREE.TorusGeometry(d.size * 1.4, 0.3, 8, 40);
+    const ringMat = new THREE.MeshBasicMaterial({ color: d.color, transparent: true, opacity: 0.25 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.random() * Math.PI;
+    ring.rotation.y = Math.random() * Math.PI;
+    mesh.add(ring);
+    mesh.userData.ring = ring;
+  });
+
+  // Draw connection lines between nodes
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i+1; j < nodes.length; j++) {
+      const d = nodes[i].position.distanceTo(nodes[j].position);
+      if (d < 65) {
+        const pts = [nodes[i].position, nodes[j].position];
+        const lg = new THREE.BufferGeometry().setFromPoints(pts);
+        const lm = new THREE.LineBasicMaterial({ color: 0x4444aa, transparent: true, opacity: 0.15 });
+        group.add(new THREE.Line(lg, lm));
+      }
+    }
+  }
+
+  // Background star field
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = new Float32Array(2000 * 3);
+  for (let i = 0; i < 2000; i++) {
+    starPos[i*3]   = (Math.random()-0.5)*600;
+    starPos[i*3+1] = (Math.random()-0.5)*600;
+    starPos[i*3+2] = (Math.random()-0.5)*600;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xffffff, size:0.4, transparent:true, opacity:0.3 })));
+
+  // Floating label system using CSS overlay
+  const labelDiv = document.createElement('div');
+  labelDiv.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;';
+  canvas.parentElement.style.position = 'relative';
+  canvas.parentElement.appendChild(labelDiv);
+
+  const labels = nodeData.map(d => {
+    const el = document.createElement('div');
+    el.textContent = d.name;
+    el.style.cssText = `position:absolute;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;
+      color:#fff;letter-spacing:1px;padding:2px 6px;border-radius:4px;
+      background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.12);
+      transform:translate(-50%,-50%);pointer-events:none;opacity:0.8;
+      text-shadow:0 0 10px rgba(255,255,255,0.5);white-space:nowrap;`;
+    labelDiv.appendChild(el);
+    return el;
+  });
+
+  // Resize
+  function resize() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(canvas);
+  resize();
+
+  // Mouse interaction
+  let isDragging = false, lastX = 0, lastY = 0;
+  let rotX = 0.2, rotY = 0, targetRotX = 0.2, targetRotY = 0;
+  let zoom = 120, targetZoom = 120;
+
+  canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+  window.addEventListener('mouseup', () => isDragging = false);
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    targetRotY += (e.clientX - lastX) * 0.005;
+    targetRotX += (e.clientY - lastY) * 0.003;
+    targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  canvas.addEventListener('wheel', e => {
+    targetZoom = Math.max(60, Math.min(200, targetZoom + e.deltaY * 0.1));
+    e.preventDefault();
+  }, { passive: false });
+
+  // Touch
+  let lastTouchX = 0, lastTouchY = 0;
+  canvas.addEventListener('touchstart', e => { lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }, { passive: true });
+  canvas.addEventListener('touchmove', e => {
+    targetRotY += (e.touches[0].clientX - lastTouchX) * 0.005;
+    targetRotX += (e.touches[0].clientY - lastTouchY) * 0.003;
+    lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
+    e.preventDefault();
+  }, { passive: false });
+
+  // Hover detection
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  let hoveredNode = null;
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(nodeMeshes);
+    if (hits.length > 0) {
+      const m = hits[0].object;
+      if (hoveredNode !== m) {
+        if (hoveredNode) { hoveredNode.material.emissiveIntensity = hoveredNode.userData.baseEmissive; }
+        hoveredNode = m;
+        m.material.emissiveIntensity = 0.9;
+        canvas.style.cursor = 'pointer';
+      }
+    } else {
+      if (hoveredNode) { hoveredNode.material.emissiveIntensity = hoveredNode.userData.baseEmissive; hoveredNode = null; }
+      canvas.style.cursor = 'grab';
+    }
+  });
+
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(nodeMeshes);
+    if (hits.length > 0) {
+      const name = hits[0].object.userData.name;
+      toast(`Exploring ${name}!`, '🌌');
+    }
+  });
+
+  // Project 3D point to 2D canvas space
+  const projected = new THREE.Vector3();
+  function project(pos) {
+    projected.copy(pos);
+    projected.applyMatrix4(group.matrixWorld);
+    projected.project(camera);
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (projected.x * 0.5 + 0.5) * rect.width,
+      y: (-projected.y * 0.5 + 0.5) * rect.height,
+      behind: projected.z > 1
+    };
+  }
+
+  let t = 0;
+  (function animate() {
+    requestAnimationFrame(animate);
+    t += 0.006;
+
+    // Smooth camera
+    rotX += (targetRotX - rotX) * 0.06;
+    rotY += (targetRotY - rotY) * 0.06;
+    zoom += (targetZoom - zoom) * 0.05;
+    group.rotation.x = rotX;
+    group.rotation.y = rotY + t * 0.04;
+    camera.position.z = zoom;
+
+    // Pulse nodes
+    nodes.forEach((n, i) => {
+      const s = 1 + Math.sin(t + i * 0.7) * 0.06;
+      n.scale.setScalar(s);
+      if (n.userData.ring) n.userData.ring.rotation.z += 0.012;
+    });
+
+    renderer.render(scene, camera);
+
+    // Update labels
+    nodes.forEach((n, i) => {
+      const p = project(n.position);
+      if (p.behind) { labels[i].style.display = 'none'; return; }
+      labels[i].style.display = 'block';
+      labels[i].style.left = p.x + 'px';
+      labels[i].style.top = (p.y - nodeData[i].size * 18) + 'px';
+    });
+  })();
+})();
+
+// ═══════════════════════════════════════════════════
+// FLOATING BADGE ANIMATION
+// ═══════════════════════════════════════════════════
+(function initFloatingBadges() {
+  const container = document.getElementById('floatingBadges');
+  const words = ['Action','Drama','Thriller','Sci-Fi','Horror','Fantasy','Romance','Crime','Mystery','Anime','Shōnen','Isekai','Mecha','Noir','Cyberpunk','Comedy','Adventure','Psychological','Musical','Western','Seinen','Shōjo'];
+  let count = 0;
+  function spawnBadge() {
+    const el = document.createElement('div');
+    el.className = 'float-badge';
+    el.textContent = words[count++ % words.length];
+    const left = Math.random() * 90 + 5;
+    const dur  = Math.random() * 14 + 14;
+    const drift = (Math.random() - 0.5) * 120;
+    el.style.cssText += `left:${left}%;bottom:-50px;--drift:${drift}px;animation-duration:${dur}s;animation-delay:${Math.random()*3}s;`;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), dur * 1000 + 3000);
+  }
+  for (let i = 0; i < 12; i++) setTimeout(spawnBadge, i * 600);
+  setInterval(spawnBadge, 1800);
+})();
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  animateCounters();
+  renderGenreGrid();
+  renderSeries();
+  renderAnime();
+  renderMoods();
+  renderQuiz();
+  renderCompare();
+  renderStats();
+  renderTimeline();
+  renderWatchlist();
+  renderChart();
+  renderAnimeDemos();
+});
+
+window.addEventListener('scroll', () => {
+  document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 400);
+  document.querySelectorAll('section[id]').forEach(sec => {
+    const top = sec.getBoundingClientRect().top;
+    if (top < 100 && top > -400) {
+      document.querySelectorAll('.nav-link').forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + sec.id);
+      });
+    }
+  });
+});
+
+// ─── COUNTER ANIMATION ───
+function animateCounters() {
+  const targets = [{id:'cnt1',target:48},{id:'cnt2',target:240},{id:'cnt3',target:95},{id:'cnt4',target:24}];
+  const suffixes = ['','K+','K+',''];
+  targets.forEach(({id,target},i) => {
+    let current = 0;
+    const increment = target / 60;
+    const timer = setInterval(() => {
+      current = Math.min(current + increment, target);
+      const el = document.getElementById(id);
+      if (el) el.textContent = Math.floor(current) + (suffixes[i] || '');
+      if (current >= target) clearInterval(timer);
+    }, 25);
+  });
+}
+
+// ─── GENRE GRID ───
+function renderGenreGrid() {
+  const container = document.getElementById('genreGrid');
+  if (!container) return;
+  const q = (document.getElementById('genreSearch') || {}).value || '';
+  let filtered = currentTab === 'all' ? GENRES : GENRES.filter(g => g.type.includes(currentTab));
+  if (q) filtered = filtered.filter(g => g.name.toLowerCase().includes(q.toLowerCase()) || g.desc.toLowerCase().includes(q.toLowerCase()));
+  container.innerHTML = filtered.map(g => `
+    <div class="genre-card ${g.color}" onclick="openGenreModal('${g.id}')">
+      <div class="genre-card-glow"></div>
+      ${g.pill ? `<span class="genre-pill" style="background:rgba(124,58,237,0.2);color:#a78bfa;">${g.pill}</span>` : ''}
+      <span class="genre-emoji">${g.emoji}</span>
+      <div class="genre-name">${g.name}</div>
+      <div class="genre-count">${g.count} titles</div>
+    </div>`).join('');
+}
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGenreGrid();
+}
+
+function filterGenres(q) { renderGenreGrid(); }
+
+// ─── SERIES ───
+let allSeries = [...SERIES_DATA];
+function renderSeries(data) {
+  const container = document.getElementById('seriesGrid');
+  if (!container) return;
+  const list = data || allSeries;
+  container.innerHTML = list.map(s => `
+    <div class="series-card" onclick="toast('${s.title}','${s.emoji}')">
+      <div class="series-banner" style="background:linear-gradient(135deg, ${s.color}, #111827);">
+        <span style="position:relative;z-index:1;">${s.emoji}</span>
+        <div class="series-banner-overlay"></div>
+      </div>
+      <div class="series-info">
+        <div class="series-genres">
+          ${s.tags.map((t,i) => `<span class="series-genre-tag" style="background:rgba(255,255,255,0.07);color:var(--muted);">${t}</span>`).join('')}
+        </div>
+        <div class="series-title">${s.title}</div>
+        <div class="series-meta">
+          <span class="series-rating">★ ${s.rating}</span>
+          <span>${s.platform}</span>
+          <span>${s.year}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filterSeries() {
+  const genre = document.getElementById('filterGenre').value;
+  const platform = document.getElementById('filterPlatform').value;
+  const era = document.getElementById('filterEra').value;
+  const sort = document.getElementById('filterSort').value;
+  let data = [...SERIES_DATA];
+  if (genre) data = data.filter(s => s.tags.includes(genre));
+  if (platform) data = data.filter(s => s.platform === platform);
+  if (era) {
+    const eraMap = {'2020s':'202','2010s':'201','2000s':'200','90s':'199'};
+    data = data.filter(s => s.year.startsWith(eraMap[era] || ''));
+  }
+  if (sort === 'Newest') data.sort((a,b) => b.year - a.year);
+  else if (sort === 'Title A-Z') data.sort((a,b) => a.title.localeCompare(b.title));
+  else data.sort((a,b) => parseFloat(b.rating) - parseFloat(a.rating));
+  renderSeries(data);
+}
+
+// ─── ANIME ───
+function renderAnime() {
+  const grid = document.getElementById('animeGrid');
+  if (grid) {
+    grid.innerHTML = ANIME_DATA.map(s => `
+      <div class="series-card" onclick="toast('${s.title}','${s.emoji}')">
+        <div class="series-banner" style="background:linear-gradient(135deg,${s.color},#111827);">
+          <span style="position:relative;z-index:1;">${s.emoji}</span>
+          <div class="series-banner-overlay"></div>
+        </div>
+        <div class="series-info">
+          <div class="series-genres">${s.tags.map(t=>`<span class="series-genre-tag" style="background:rgba(255,255,255,0.07);color:var(--muted);">${t}</span>`).join('')}</div>
+          <div class="series-title">${s.title}</div>
+          <div class="series-meta"><span class="series-rating">★ ${s.rating}</span><span>${s.platform}</span><span>${s.year}</span></div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function renderAnimeDemos() {
+  const dg = document.getElementById('animeDemoGrid');
+  const tg = document.getElementById('animeThemeGrid');
+  if (dg) dg.innerHTML = ANIME_DEMO.map(d => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;display:flex;align-items:center;gap:0.75rem;">
+      <span style="font-size:1.5rem;">${d.emoji}</span>
+      <div>
+        <div style="font-weight:700;font-size:0.88rem;color:${d.color};">${d.key}</div>
+        <div style="font-size:0.75rem;color:var(--muted);">${d.desc}</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem;">${d.examples}</div>
+      </div>
+    </div>`).join('');
+  if (tg) tg.innerHTML = ANIME_THEMES.map(t => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;display:flex;align-items:center;gap:0.75rem;">
+      <span style="font-size:1.5rem;">${t.emoji}</span>
+      <div>
+        <div style="font-weight:700;font-size:0.88rem;color:${t.color};">${t.key}</div>
+        <div style="font-size:0.72rem;color:var(--muted);">${t.examples}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── MOODS ───
+function renderMoods() {
+  const container = document.getElementById('moodGrid');
+  if (!container) return;
+  container.innerHTML = MOODS.map(m => `
+    <div class="mood-card" onclick="toast('${m.label}: ${m.genres.join(', ')}','${m.emoji}')" style="background:${m.color}12;border-color:${m.color}30;">
+      <div class="mood-card" style="position:absolute;inset:0;background:${m.color};"></div>
+      <span class="mood-emoji">${m.emoji}</span>
+      <div class="mood-label">${m.label}</div>
+      <div class="mood-desc">${m.desc}</div>
+      <div style="margin-top:0.5rem;display:flex;gap:0.25rem;flex-wrap:wrap;justify-content:center;">
+        ${m.genres.map(g => `<span style="font-size:0.6rem;background:rgba(255,255,255,0.08);border-radius:100px;padding:0.15rem 0.4rem;">${g}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ─── QUIZ ───
+function renderQuiz() {
+  const progress = document.getElementById('quizProgress');
+  const content = document.getElementById('quizContent');
+  if (!progress || !content) return;
+  progress.innerHTML = QUIZ_QUESTIONS.map((_,i) => `<div class="quiz-step ${i < quizQ ? 'done' : ''}"></div>`).join('');
+  if (quizQ >= QUIZ_QUESTIONS.length) {
+    const idx = Math.floor(Math.random() * QUIZ_RESULTS.length);
+    const r = QUIZ_RESULTS[idx];
+    content.innerHTML = `
+      <div class="quiz-result-card show">
+        <span class="quiz-result-emoji">${r.emoji}</span>
+        <div class="quiz-result-title">${r.title}</div>
+        <p class="quiz-result-desc">${r.desc}</p>
+        <button class="btn-classify" style="margin-top:1.5rem;" onclick="quizQ=0;quizAnswers=[];renderQuiz()">Try Again →</button>
+      </div>`;
+    return;
+  }
+  const q = QUIZ_QUESTIONS[quizQ];
+  content.innerHTML = `
+    <div class="quiz-q">${quizQ+1}. ${q.q}</div>
+    <div class="quiz-options">
+      ${q.opts.map((o,i) => `<button class="quiz-option" onclick="quizAnswer(${i})">${o}</button>`).join('')}
+    </div>`;
+}
+
+function quizAnswer(i) {
+  quizAnswers.push(i);
+  quizQ++;
+  renderQuiz();
+}
+
+// ─── COMPARE ───
+const COMPARE_DATA = {
+  Action:      {pace:'Fast',mood:'Intense',audience:'18–35',runtime:'120 min',production:'High',global:'★★★★★'},
+  Drama:       {pace:'Moderate',mood:'Emotional',audience:'25–55',runtime:'115 min',production:'Medium',global:'★★★★☆'},
+  Comedy:      {pace:'Varied',mood:'Light',audience:'All ages',runtime:'95 min',production:'Medium',global:'★★★★☆'},
+  Thriller:    {pace:'Fast',mood:'Tense',audience:'20–45',runtime:'118 min',production:'High',global:'★★★★☆'},
+  'Sci-Fi':    {pace:'Varied',mood:'Cerebral',audience:'20–40',runtime:'125 min',production:'Very High',global:'★★★★★'},
+  Horror:      {pace:'Slow-Fast',mood:'Fearful',audience:'18–30',runtime:'100 min',production:'Low-High',global:'★★★☆☆'},
+  Fantasy:     {pace:'Epic',mood:'Wonder',audience:'All ages',runtime:'130 min',production:'Very High',global:'★★★★★'},
+  Romance:     {pace:'Slow',mood:'Warm',audience:'25–45F',runtime:'105 min',production:'Low',global:'★★★☆☆'},
+  Crime:       {pace:'Methodical',mood:'Gritty',audience:'25–50',runtime:'120 min',production:'Medium',global:'★★★★☆'},
+  Mystery:     {pace:'Slow',mood:'Curious',audience:'30–60',runtime:'110 min',production:'Medium',global:'★★★☆☆'},
+  Animation:   {pace:'Varied',mood:'Varied',audience:'All ages',runtime:'90 min',production:'High',global:'★★★★☆'},
+  Documentary: {pace:'Varied',mood:'Informative',audience:'30–65',runtime:'95 min',production:'Low',global:'★★★☆☆'},
+};
+
+function renderCompare() {
+  const g1 = document.getElementById('compare1').value;
+  const g2 = document.getElementById('compare2').value;
+  const d1 = COMPARE_DATA[g1] || {};
+  const d2 = COMPARE_DATA[g2] || {};
+  const keys = ['pace','mood','audience','runtime','production','global'];
+  const labels = ['Pacing','Mood','Core Audience','Avg Runtime','Production Budget','Global Appeal'];
+  const mk = (d, g) => `
+    <div class="compare-card">
+      <h3 style="font-family:'Bebas Neue';font-size:1.8rem;margin-bottom:1rem;">${g}</h3>
+      ${keys.map((k,i) => `<div class="compare-row"><span class="compare-label">${labels[i]}</span><span class="compare-value">${d[k]||'—'}</span></div>`).join('')}
+    </div>`;
+  document.getElementById('compareGrid').innerHTML = `
+    ${mk(d1,g1)}
+    <div class="vs-divider">VS</div>
+    ${mk(d2,g2)}`;
+}
+
+// ─── STATS ───
+function renderStats() {
+  const grid = document.getElementById('statsGrid');
+  if (!grid) return;
+  const stats = [
+    {num:'48',label:'Total Genres',change:'↑ 3 new in 2024',color:'var(--accent)'},
+    {num:'$42B',label:'Genre Film Revenue',change:'↑ 12% YoY',color:'var(--accent2)'},
+    {num:'240+',label:'Sub-genres Tracked',change:'Constantly growing',color:'var(--accent3)'},
+    {num:'8,200',label:'New Titles/Year',change:'↑ 18% streaming',color:'var(--accent4)'},
+  ];
+  grid.innerHTML = stats.map(s => `
+    <div class="stat-card">
+      <div class="stat-card-num" style="color:${s.color};">${s.num}</div>
+      <div class="stat-card-label">${s.label}</div>
+      <div class="stat-card-change">${s.change}</div>
+    </div>`).join('');
+}
+
+// ─── CHART ───
+function renderChart() {
+  const container = document.getElementById('chartBars');
+  if (!container) return;
+  const max = Math.max(...CHART_DATA.map(d=>d.val));
+  container.innerHTML = CHART_DATA.map(d => `
+    <div class="chart-bar-wrap">
+      <div class="chart-bar-val">${d.val}</div>
+      <div class="chart-bar" style="height:${(d.val/max)*160}px;"></div>
+      <div class="chart-bar-label">${d.label}</div>
+    </div>`).join('');
+}
+
+// ─── TIMELINE ───
+function renderTimeline() {
+  const container = document.getElementById('timeline');
+  if (!container) return;
+  container.innerHTML = TIMELINE_EVENTS.map(e => `
+    <div class="timeline-item">
+      <div class="timeline-era">${e.era}</div>
+      <div class="timeline-title">${e.title}</div>
+      <div class="timeline-desc">${e.desc}</div>
+    </div>`).join('');
+}
+
+// ─── WATCHLIST ───
+function renderWatchlist() {
+  const container = document.getElementById('watchlistItems');
+  if (!container) return;
+  container.innerHTML = watchlist.map((w,i) => `
+    <div class="watchlist-item" onclick="toggleWatchlist(${i})">
+      <div class="watchlist-thumb" style="background:rgba(124,58,237,0.15);">${w.emoji}</div>
+      <div class="watchlist-info">
+        <div class="watchlist-title" style="${w.done?'text-decoration:line-through;opacity:0.5;':''}">${w.title}</div>
+        <div class="watchlist-genre">${w.genre}</div>
+      </div>
+      <div class="watchlist-check ${w.done?'done':''}">${w.done?'✓':''}</div>
+    </div>`).join('');
+
+  const dist = document.getElementById('genreDistribution');
+  if (dist) dist.innerHTML = ['Drama','Action','Sci-Fi'].map((g,i) => `
+    <div style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.4rem;">
+        <span>${g}</span><span style="color:var(--muted);">${[42,31,27][i]}%</span>
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${[42,31,27][i]}%;background:${['var(--accent)','var(--accent2)','var(--accent3)'][i]};border-radius:2px;transition:width 1s ease;"></div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleWatchlist(i) {
+  watchlist[i].done = !watchlist[i].done;
+  renderWatchlist();
+  toast(watchlist[i].done ? `Marked "${watchlist[i].title}" as watched!` : `Unmarked "${watchlist[i].title}"`, watchlist[i].emoji);
+}
+
+function addToWatchlist() {
+  const newItem = {title:'New Title',genre:'Your Genre',emoji:'🎬',done:false};
+  watchlist.push(newItem);
+  renderWatchlist();
+  toast('Added to watchlist!','📋');
+}
+
+// ─── MODAL ───
+function openGenreModal(id) {
+  const g = GENRES.find(x => x.id === id);
+  if (!g) return;
+  const extra = GENRE_DATA_MAP[g.name] || {};
+  document.getElementById('modalContent').innerHTML = `
+    <div style="font-size:3rem;margin-bottom:0.5rem;">${g.emoji}</div>
+    <h2>${g.name}</h2>
+    <div style="display:flex;gap:0.5rem;margin:0.75rem 0 1.25rem;flex-wrap:wrap;">
+      ${g.type.map(t=>`<span class="genre-tag secondary">${t}</span>`).join('')}
+      <span class="genre-tag mood">${g.count} titles</span>
+    </div>
+    <p style="color:var(--muted);font-size:0.9rem;line-height:1.7;margin-bottom:1.5rem;">${g.desc}</p>
+    ${extra.subgenres ? `
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem;">Sub-Genres</div>
+        <p style="font-size:0.88rem;">${extra.subgenres}</p>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem;">Notable Works</div>
+        <p style="font-size:0.88rem;">${extra.notable}</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:1rem;">
+        <div style="background:rgba(255,255,255,0.04);padding:0.75rem;border-radius:8px;">
+          <div style="font-size:0.7rem;color:var(--muted);">Mood</div>
+          <div style="font-size:0.88rem;font-weight:600;">${extra.mood||'—'}</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);padding:0.75rem;border-radius:8px;">
+          <div style="font-size:0.7rem;color:var(--muted);">Audience</div>
+          <div style="font-size:0.88rem;font-weight:600;">${extra.audience||'All'}</div>
+        </div>
+      </div>` : ''}
+    <button class="btn-classify" style="margin-top:1.5rem;width:100%;" onclick="closeModal();toast('Exploring ${g.name}!','${g.emoji}')">
+      Explore ${g.name} Titles →
+    </button>`;
+  document.getElementById('genreModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('genreModal').classList.remove('open');
+}
+
+document.getElementById('genreModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ─── TOAST ───
+function toast(msg, icon='✅') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIcon').textContent = icon;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════
+// AI CLASSIFIER — FIXED & WORKING
+// ═══════════════════════════════════════════════════
+async function classifyGenre() {
+  const input = document.getElementById('aiInput').value.trim();
+  if (!input) { toast('Please describe a movie or show first!','⚠️'); return; }
+
+  const btn = document.getElementById('classifyBtn');
+  const btnText = document.getElementById('classifyBtnText');
+  const result = document.getElementById('aiResult');
+  const content = document.getElementById('aiResultContent');
+  const type = document.getElementById('aiType').value;
+  const detail = document.getElementById('aiDetail').value;
+
+  btn.disabled = true;
+  btnText.textContent = 'Analyzing...';
+  result.classList.add('show');
+  content.innerHTML = `<div class="typing-indicator">
+    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    <span style="margin-left:0.5rem;font-size:0.85rem;color:var(--muted);">AI analyzing genres...</span>
+  </div>`;
+
+  const systemPrompt = `You are CineGenre AI, an expert film and television genre classifier. Analyze any movie, TV show, or anime description and provide:
+1. Primary genre(s) — the main 1-2 genres
+2. Secondary genres — additional 2-3 relevant genres
+3. Mood tags — 2-3 mood/tone descriptors
+4. Confidence score (0-100)
+5. A brief 2-3 sentence analysis explaining why these genres fit
+6. 3 similar titles the viewer would enjoy
+
+Respond ONLY with a single valid JSON object — no markdown fences, no extra text, no preamble. Format:
+{"primary":["Genre1","Genre2"],"secondary":["G3","G4","G5"],"mood":["Mood1","Mood2"],"confidence":87,"analysis":"Your analysis here.","similar":["Title1","Title2","Title3"]}
+
+Be specific and nuanced. For anime, include both demographic (Shōnen/Shōjo/Seinen/Josei) and thematic genres.`;
+
+  const userMsg = `${type !== 'any' ? `Type: ${type}. ` : ''}${detail === 'deep' ? 'Provide deep analysis. ' : detail === 'simple' ? 'Give simple tags only, keep analysis brief. ' : ''}Classify this: ${input}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    let text = (data.content || []).map(c => c.text || '').join('').trim();
+    // Strip any accidental markdown fences
+    text = text.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+
+    let parsed = null;
+    try { parsed = JSON.parse(text); } catch(e) {
+      // Try extracting JSON from within text
+      const m = text.match(/\{[\s\S]*\}/);
+      if (m) try { parsed = JSON.parse(m[0]); } catch(e2) {}
+    }
+
+    if (parsed && (parsed.primary || parsed.secondary)) {
+      content.innerHTML = `
+        <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.75rem;">✨ Genre Classification Result</div>
+        <div class="result-genres">
+          ${(parsed.primary||[]).map(g=>`<span class="genre-tag primary">🎯 ${g}</span>`).join('')}
+          ${(parsed.secondary||[]).map(g=>`<span class="genre-tag secondary">${g}</span>`).join('')}
+          ${(parsed.mood||[]).map(m=>`<span class="genre-tag mood">🎭 ${m}</span>`).join('')}
+        </div>
+        <div class="result-confidence">
+          <span class="conf-label">Confidence</span>
+          <div class="conf-bar"><div class="conf-fill" style="width:${parsed.confidence||80}%;"></div></div>
+          <span class="conf-pct">${parsed.confidence||80}%</span>
+        </div>
+        <div class="result-analysis" style="margin-top:1rem;padding:1rem;background:rgba(124,58,237,0.06);border-radius:8px;border-left:3px solid var(--accent2);">${parsed.analysis||''}</div>
+        ${parsed.similar && parsed.similar.length ? `
+          <div style="margin-top:1rem;">
+            <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem;">🎬 Similar Titles You May Like</div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              ${parsed.similar.map(s=>`<span style="background:rgba(255,255,255,0.06);border:1px solid var(--border);padding:0.25rem 0.7rem;border-radius:100px;font-size:0.78rem;">${s}</span>`).join('')}
+            </div>
+          </div>` : ''}`;
+    } else {
+      content.innerHTML = `<div class="result-analysis" style="padding:1rem;background:rgba(124,58,237,0.06);border-radius:8px;">${text || 'Could not parse response. Try again.'}</div>`;
+    }
+  } catch(err) {
+    content.innerHTML = `
+      <div style="color:var(--accent);background:rgba(230,62,109,0.08);border:1px solid rgba(230,62,109,0.2);border-radius:8px;padding:1rem;">
+        <strong>⚠️ Classification Error</strong><br>
+        <span style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;display:block;">${err.message}</span>
+        <span style="font-size:0.78rem;color:var(--muted);margin-top:0.25rem;display:block;">Make sure the API is accessible from your environment.</span>
+      </div>`;
+  }
+
+  btn.disabled = false;
+  btnText.textContent = '🎬 Classify Genre';
+}
+
+function clearAI() {
+  document.getElementById('aiInput').value = '';
+  document.getElementById('aiResult').classList.remove('show');
+}
+
+// ─── DOWNLOAD ───
+function downloadSite() {
+  const html = document.documentElement.outerHTML;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'CineGenre-AI-GODMODE.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Downloaded! Open in browser to use.','⬇️');
+}
+</script>
+</body>
+</html>
